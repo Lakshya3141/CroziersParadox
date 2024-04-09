@@ -17,32 +17,32 @@
 class Nest {
 public:
     Nest(const unsigned int nid, const params& p);
-    Nest(const unsigned int nid, const params& p, const CuesArray& prevNestMean);
+    Nest(const unsigned int nid, const params& p, const std::vector<double>& prevNestMean);
     // Nest functions, self explanatory broadly, detailed explanation given above function definition
 
     // Nest variables
     unsigned int nest_id;
     unsigned int individual_id_counter = 0;
-    std::vector<Individual<1> > NestWorkers;
-    CuesArray NestMean;
+    std::vector<Individual> NestWorkers;
+    std::vector<double> NestMean;
     double TotalAbundance;
     int NestStock = iInitNestStock;
     
     // Nest functions
-    void calculate_abundance();
+    void calculate_abundance(const params& p);
     size_t findIndexById(const int id);
 };
 
 // Constructor for initial nests
 Nest::Nest(const unsigned int nid, const params& p) : nest_id(nid) {
-    for (int i = 0; i < iNumCues; i++) {
-        NestMean[i] = exponential(dExpParam);
+    for (int i = 0; i < p.iNumCues; i++) {
+        NestMean.push_back(exponential(dExpParam));
     }
 
-    calculate_abundance();
+    calculate_abundance(p);
 
-    for (int i = 0; i < iNumWorkers; i++) {
-        Individual<1> newWorker(individual_id_counter, p, NestMean);
+    for (int i = 0; i < p.iNumWorkers; i++) {
+        Individual newWorker(individual_id_counter, p, NestMean);
         newWorker.nest_id = nid;
         ++individual_id_counter;
         NestWorkers.push_back(newWorker);
@@ -50,16 +50,16 @@ Nest::Nest(const unsigned int nid, const params& p) : nest_id(nid) {
 } 
 
 // Constructor for reproduced nests
-Nest::Nest(const unsigned int nid, const params& p, const CuesArray& prevNestMean) : nest_id(nid) {
-    for (int i = 0; i < iNumCues; i++) {
-        NestMean[i] = normal(prevNestMean[i], p.dMutationStrength);
+Nest::Nest(const unsigned int nid, const params& p, const std::vector<double>& prevNestMean) : nest_id(nid) {
+    for (int i = 0; i < p.iNumCues; i++) {
+        NestMean.push_back(normal(prevNestMean[i], p.dMutationStrength));
         if (NestMean[i] < 0.0) NestMean[i] = 0.0;
     }
 
-    calculate_abundance();
+    calculate_abundance(p);
 
-    for (int i = 0; i < iNumWorkers; i++) {
-        Individual<1> newWorker(individual_id_counter, p, NestMean);
+    for (int i = 0; i < p.iNumWorkers; i++) {
+        Individual newWorker(individual_id_counter, p, NestMean);
         newWorker.nest_id = nid;
         ++individual_id_counter;
         NestWorkers.push_back(newWorker);
@@ -67,16 +67,16 @@ Nest::Nest(const unsigned int nid, const params& p, const CuesArray& prevNestMea
 }
 
 // Calculate total abundance from NestMean
-void Nest::calculate_abundance() {
+void Nest::calculate_abundance(const params& p) {
     TotalAbundance = 0.0;
-    for (int i = 0; i < iNumCues; i++) {
+    for (int i = 0; i < p.iNumCues; i++) {
         TotalAbundance = TotalAbundance + NestMean[i];
     }
 }
 
 // Function to search by indidivual ID in a nest and return index
 size_t Nest::findIndexById(const int id) {
-    auto it = std::find_if(NestWorkers.begin(), NestWorkers.end(), [id](const Individual<1>& ind) {
+    auto it = std::find_if(NestWorkers.begin(), NestWorkers.end(), [id](const Individual& ind) {
         return ind.ind_id == id;
     });
     if (it != NestWorkers.end()) {

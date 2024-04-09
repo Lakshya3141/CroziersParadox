@@ -12,16 +12,15 @@
 #include "Parameters.hpp"
 #include "Random.hpp"
 
-using CuesArray = std::array<double, iNumCues>;
+// using CuesArray = std::array<double, iNumCues>;
 
-template <int Ploidy>       // We dont use ploidy yet but I will keep it to make my code easier later on
 class Individual {
 public:
     // Individual constructors
     // male and female default + initialised constructors overloaded
-    Individual(const int id, const params& p, const CuesArray& NestMean);   
+    Individual(const int id, const params& p, const std::vector<double>& NestMean);   
     
-    CuesArray IndiCues;
+    std::vector<double> IndiCues;
     bool bSuccesfulFood = false;// True if ant carries food on way home
     bool is_alive = true;       // Death status of individual
     double t_birth = uni_real();// Birth time of each individual, random number between 0 - 1
@@ -35,10 +34,9 @@ public:
 };
 
 // constructor for new individuals from Nest Mean
-template <>
-Individual<1>::Individual (const int id, const params& p, const CuesArray& NestMean) : ind_id(id) {
-    for (int i = 0; i < iNumCues; i++) {
-        IndiCues[i] = normal(NestMean[i], p.dMutationStrength);
+Individual::Individual (const int id, const params& p, const std::vector<double>& NestMean) : ind_id(id) {
+    for (int i = 0; i < p.iNumCues; i++) {
+        IndiCues.push_back(normal(NestMean[i], p.dMutationStrength));
         if (IndiCues[i] < 0) IndiCues[i] = 0.0;
     }
     t_birth = gtime + uni_real();

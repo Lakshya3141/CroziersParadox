@@ -26,7 +26,7 @@ struct track_time {
     int ind_id;
 
     // event constructor using initializer lists
-    track_time(const Individual<1>& input) :
+    track_time(const Individual& input) :
         time{input.t_next},
         nest_id{input.nest_id},
         ind_id{input.ind_id}
@@ -91,7 +91,7 @@ void Population::simulate(){
 
         // dummy current to hold old variable values for current individual
         auto current = nests[cnestindex].NestWorkers[cindindex];
-        Individual<1>& cf{nests[cnestid].NestWorkers[cindindex]};
+        Individual& cf{nests[cnestid].NestWorkers[cindindex]};
 
         gtime = next_event.time;
 
