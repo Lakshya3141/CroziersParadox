@@ -1,11 +1,11 @@
 //
 //  Population.hpp
-//  OGH_Eusociality
+//  Croziers Paradox
 //
-//  Created by Lakshya Chauhan on 02/10/2023.
-//  Copyright © 2023 Lakshya Chauhan. All rights reserved.
+//  Created by Lakshya Chauhan on 08/04/2024.
+//  Copyright © 2024 Lakshya Chauhan. All rights reserved.
 //  Defines population functions, simulations and outputs
-//
+// Prompt 5
 
 #ifndef Population_hpp
 #define Population_hpp    
@@ -40,7 +40,6 @@ public:
     std::vector<Nest> nests;
     unsigned int nest_id_counter = 0;               // nest ID counter 
     unsigned int ind_id_counter = 0;                // ind ID counter
-    int PopStock = iInitFoodStock;
     params p;
 
     std::vector<unsigned int> storer_nest_id;       // vector to store nest IDs corresponding to nest indexes
@@ -56,11 +55,14 @@ auto cmptime = [](const track_time& a, const track_time& b) { return a.time > b.
 
 // initialise population function
 void Population::initialise_pop() {
-    for(int i=0; i < iNumColonies; ++i) {
+    for(int i=0; i < p.iNumColonies; ++i) {
         nests.emplace_back(nest_id_counter, p);
         storer_nest_id.push_back(nest_id_counter);
         ++nest_id_counter;
     }
+    
+    int PopStock = p.iInitFoodStock;
+
 }
 
 void Population::simulate(){
