@@ -1,28 +1,57 @@
+#include "Individual.hpp"
 #include <iostream>
-#include "Nest.hpp"
 
 int main() {
     // Define parameters
     params p;
-    // Initialize nest ID
-    unsigned int indID = 1;
-    std::vector<double> dumNestMean = {1, 2, 3, 4, 5};
-    std::vector<double> otherProfile = {0, 1, 3, 5, 10};
-    Individual dummy(indID, p, dumNestMean);
-    
-    double gestaltDist = dummy.calculateGestaltDist(dumNestMean, otherProfile);
-    std::cout << "Gestalt Distance: " << gestaltDist << std::endl;
 
-    // Test calculateUAbsentDist function
-    
-    double uAbsentDist = dummy.calculateUAbsentDist(otherProfile);
-    std::cout << "UAbsent Distance: " << uAbsentDist << std::endl;
-    
+    // Define nest mean and neutral gene
+    std::vector<double> nestMean = {0.5, 0.3, 0.8, 0.2, 0.6};
+    double nestNeutral = 0.1;
 
-    // Test calculateDPresentDist function
-    
-    double dPresentDist = dummy.calculateDPresentDist(otherProfile);
-    std::cout << "DPresent Distance: " << dPresentDist << std::endl;
+    // Initialize individuals
+    std::vector<Individual> individuals;
+    for (int i = 0; i < 5; ++i) {
+        Individual ind(i, p, nestMean, nestNeutral);
+        individuals.push_back(ind);
+    }
+
+    // Print information about individuals before mutation
+    std::cout << "Individuals before mutation:" << std::endl;
+    for (const auto& ind : individuals) {
+        std::cout << "ID: " << ind.ind_id << ", Neutral Gene: " << ind.NeutralGene << ", Cues: ";
+        for (const auto& cue : ind.IndiCues) {
+            std::cout << cue << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // Test mutate function
+    for (auto& ind : individuals) {
+        ind.mutate(p);
+    }
+
+    // Print information about individuals after mutation
+    std::cout << "\nIndividuals after mutation:" << std::endl;
+    for (const auto& ind : individuals) {
+        std::cout << "ID: " << ind.ind_id << ", Neutral Gene: " << ind.NeutralGene << ", Cues: ";
+        for (const auto& cue : ind.IndiCues) {
+            std::cout << cue << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // Test distance functions
+    std::vector<double> otherProfile = {0.4, 0.6, 0.7, 0.1, 0.5};
+    std::cout << "\nDistance calculations:" << std::endl;
+    for (const auto& ind : individuals) {
+        double gestaltDist = ind.calculateGestaltDist(nestMean, otherProfile);
+        double uAbsentDist = ind.calculateUAbsentDist(otherProfile);
+        double dPresentDist = ind.calculateDPresentDist(otherProfile);
+        std::cout << "ID: " << ind.ind_id << ", Gestalt Distance: " << gestaltDist
+                  << ", U-Absent Distance: " << uAbsentDist
+                  << ", D-Present Distance: " << dPresentDist << std::endl;
+    }
 
     return 0;
 }

@@ -4,7 +4,7 @@
 //  Created by Lakshya Chauhan on 03/04/2024.
 //  Copyright © 2024 Lakshya Chauhan. All rights reserved.
 //  -> This script contains random and stochasticity based functions  
-// Prompt 1
+//  Pt 1
 #ifndef Random_hpp
 #define Random_hpp
 

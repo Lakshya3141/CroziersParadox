@@ -3,8 +3,8 @@
 //
 //  Created by Lakshya Chauhan on 05/04/2024.
 //  Copyright © 2024 Lakshya Chauhan. All rights reserved.
-//  -> defines individual functions
-// Prompt 3
+//  -> defines individual class and functions
+//  Pt 3
 
 #ifndef Individual_hpp
 #define Individual_hpp
@@ -14,17 +14,19 @@
 #include "Parameters.hpp"
 #include "Random.hpp"
 
+// The class below defines an individual and the functions corresponding to it
 class Individual {
 public:
-    // Individual constructors
-    // male and female default + initialised constructors overloaded
-    Individual(const int id, const params& p, const std::vector<double>& NestMean);   
+    // Individual constructor definition: creates an individual mutated around NestMean and with ID
+    Individual(const int id, const params& p, const std::vector<double>& NestMean, const double NestNeutral);   
     
-    std::vector<double> IndiCues;
-    double NeutralGene;
+    std::vector<double> IndiCues;   // Vector containing cue values for individuals
+    double NeutralGene;             // Neutral gene to report relatedness later
 
+    bool bIsGoing = true;       // True if heading out // False if returning
+    bool bForage = false;       // True if stealing
     bool bSuccesfulFood = false;// True if ant carries food on way home
-    bool is_alive = true;       // Death status of individual
+    bool is_alive = true;       // Death status of individual [Important when nest dies out]
     double t_birth = uni_real();// Birth time of each individual, random number between 0 - 1
     double t_next;              // Next time of action of individual
     int ind_id;                 // Individual identifier
@@ -32,16 +34,17 @@ public:
 
     // Individual funcions, names are self explanatory
     // more explanation given above function definition
-    void mutate(const params& p);
-    double calculateGestaltDist(const std::vector<double>& rNestMean, const std::vector<double>& otherProfile);
-    double calculateUAbsentDist(const std::vector<double>& otherProfile);
-    double calculateDPresentDist(const std::vector<double>& otherProfile);
-
+    void mutate(const params& p);   // Mutates individual cues and neutral gene
+    // Functions below calculate various distances given profiles
+    double calculateGestaltDist(const std::vector<double>& rNestMean, const std::vector<double>& otherProfile) const;
+    double calculateUAbsentDist(const std::vector<double>& otherProfile) const;
+    double calculateDPresentDist(const std::vector<double>& otherProfile) const;
 };
 
-// constructor for new individuals from Nest Mean
-Individual::Individual (const int id, const params& p, const std::vector<double>& NestMean) 
-: ind_id(id), NeutralGene(0.0) {
+// constructor for new individuals from mutated Nest Mean
+// Also assigns a birth time and time of action to the individual
+Individual::Individual (const int id, const params& p, const std::vector<double>& NestMean, const double NestNeutral) 
+: ind_id(id), NeutralGene(NestNeutral) {
     for (int i = 0; i < NestMean.size(); i++) {
         IndiCues.push_back(NestMean[i]);
     }
@@ -50,6 +53,7 @@ Individual::Individual (const int id, const params& p, const std::vector<double>
     t_next = t_birth;
 }
 
+// Mutate function
 void Individual::mutate (const params& p) {
     for (int i = 0; i < p.iNumCues; i++) {
         IndiCues[i] += normal(p.dMutBias, p.dMutationStrength);
@@ -59,7 +63,7 @@ void Individual::mutate (const params& p) {
 }
 
 // Function to calculate Bray Curtis distance for the "gestalt" recognition mode
-double Individual::calculateGestaltDist(const std::vector<double>& rNestMean, const std::vector<double>& otherProfile) {
+double Individual::calculateGestaltDist(const std::vector<double>& rNestMean, const std::vector<double>& otherProfile) const {
     double distance = 0.0;
     double sum1 = 0.0;
     double sum2 = 0.0;
@@ -80,7 +84,7 @@ double Individual::calculateGestaltDist(const std::vector<double>& rNestMean, co
 }
 
 // Function to calculate Bray Curtis distance for the "undesirable-absent" recognition mode
-double Individual::calculateUAbsentDist(const std::vector<double>& otherProfile) {
+double Individual::calculateUAbsentDist(const std::vector<double>& otherProfile) const {
     double distance = 0.0;
     double sum1 = 0.0;
     double sum2 = 0.0;
@@ -106,7 +110,7 @@ double Individual::calculateUAbsentDist(const std::vector<double>& otherProfile)
 }
 
 // Function to calculate Bray Curtis distance for the "desirable-present" recognition mode
-double Individual::calculateDPresentDist(const std::vector<double>& otherProfile) {
+double Individual::calculateDPresentDist(const std::vector<double>& otherProfile) const {
     double distance = 0.0;
     double sum1 = 0.0;
     double sum2 = 0.0;

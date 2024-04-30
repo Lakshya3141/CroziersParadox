@@ -2,10 +2,11 @@
 //  Population.hpp
 //  Croziers Paradox
 //
-//  Created by Lakshya Chauhan on 08/04/2024.
+//  Created by Lakshya Chauhan on 18/04/2024.
 //  Copyright © 2024 Lakshya Chauhan. All rights reserved.
-//  Defines population functions, simulations and outputs
-// Prompt 5
+//  -> Defines population class and corresponding functions
+//  -> Also defines simulation and output functions
+//  Pt 5
 
 #ifndef Population_hpp
 #define Population_hpp    
@@ -35,17 +36,19 @@ struct track_time {
 
 class Population {
 public:
+    // Constructor for population from parameter struct
     Population(const params& par) : p(par) { };
 
-    std::vector<Nest> nests;
+    std::vector<Nest> nests;                        // Vector containing nests
     unsigned int nest_id_counter = 0;               // nest ID counter 
-    unsigned int ind_id_counter = 0;                // ind ID counter
-    params p;
+    params p;                                       // Parameters defining current population
 
-    std::vector<unsigned int> storer_nest_id;       // vector to store nest IDs corresponding to nest indexes
+    // vector to store nest IDs corresponding to nest indexes
+    // becomes important as nests die
+    std::vector<unsigned int> storer_nest_id;
 
-    void initialise_pop();                          // Initialise populations
-    void simulate();
+    void initialise_pop();                          // Initialise population
+    void simulate();                                // Simulate population
 
     int findIndexByNestId(unsigned int nestId);     // returns index of Nest ID in nests vector
 };
@@ -55,19 +58,20 @@ auto cmptime = [](const track_time& a, const track_time& b) { return a.time > b.
 
 // initialise population function
 void Population::initialise_pop() {
+    // Create nests and push them to nests and storer_nest_id vector
     for(int i=0; i < p.iNumColonies; ++i) {
         nests.emplace_back(nest_id_counter, p);
         storer_nest_id.push_back(nest_id_counter);
         ++nest_id_counter;
     }
-    
+    // Initialise natural stock of food
     int PopStock = p.iInitFoodStock;
-
 }
 
 void Population::simulate(){
     // Create a priority queue to track individuals by their next action time
     std::priority_queue<track_time, std::vector<track_time>, decltype(cmptime)> event_queue(cmptime);
+    
     // Initialize the event queue with individuals and their initial next action times
     for (auto& nest : nests) {
         for (auto& individual : nest.NestWorkers) {
@@ -83,29 +87,50 @@ void Population::simulate(){
             break;
         }
 
+        // Take the next action indiviual and pop it from the queue
         track_time next_event = event_queue.top();
         event_queue.pop();
 
+        // Find nest index, ID and individual ID from next event
         size_t cnestindex = findIndexByNestId(next_event.nest_id);
         auto cindid = next_event.ind_id;
         auto cnestid = next_event.nest_id;
-        auto cindindex = nests[cnestindex].findIndexById(cindid);
+        gtime = next_event.time;        // Increment global time
+        
+        // If current individual is from colonies ALIVE
+        if (cnestindex != -1) {
 
-        // dummy current to hold old variable values for current individual
-        auto current = nests[cnestindex].NestWorkers[cindindex];
-        Individual& cf{nests[cnestid].NestWorkers[cindindex]};
+            auto cindindex = nests[cnestindex].findIndexById(cindid);
+            // dummy current to hold old variable values for current individual
+            auto current = nests[cnestindex].NestWorkers[cindindex];
+            // cf points to the memory location of the individual
+            Individual& cf{nests[cnestid].NestWorkers[cindindex]};
 
-        gtime = next_event.time;
+            // DUMMY INCREASE IN TIME
+            // TO CHECK WORKING OF QUEUE
+            cf.t_next += 1.0;
 
-        // DUMMY FUNCTIONS HERE FOR NOW
-        cf.t_next += 1.0;
-        // Push to queue
-
-        std::cout << "Nest ID: " << cf.nest_id << ", Individual ID: " << cf.ind_id 
-          << ", t_birth: " << cf.t_birth << ", t_next: " << cf.t_next << std::endl;
-
-
-        event_queue.push(cf);
+            // Check whether in colony or out
+            if (current.bIsGoing) {
+                // If outside colony, check whether foraging or steal
+                if (current.bForage) {
+                    // If foraging
+                } else {
+                    // If stealing
+                }
+            } else {
+                // If returning to colony, check whether successful or not
+                if (current.bSuccesfulFood) {
+                    // Returning with food, resident check
+                }
+                // Success or No success, simply add back to colony
+                // Also decide next task based on current status
+            }
+            std::cout << "Nest ID: " << cf.nest_id << ", Individual ID: " << cf.ind_id 
+            << ", t_birth: " << cf.t_birth << ", t_next: " << cf.t_next << std::endl;
+            event_queue.push(cf);
+        }
+        
     }
 }
 
