@@ -7,11 +7,12 @@ void printNestInfo(const Nest& nest) {
     for (const auto& cue : nest.NestMean) {
         std::cout << cue << " ";
     }
-    std::cout << "\nNest Neutral Gene: " << nest.NestNeutralGene << "\n";
-    std::cout << "Total Abundance: " << nest.TotalAbundance << "\n";
-    std::cout << "Nest Stock: " << nest.NestStock << "\n";
-    std::cout << "Tolerance Intercept: " << nest.TolIntercept << "\n";
-    std::cout << "Tolerance Slope: " << nest.TolSlope << "\n\n";
+    std::cout << std::endl;
+    // std::cout << "\nNest Neutral Gene: " << nest.NestNeutralGene << "\n";
+    // std::cout << "Total Abundance: " << nest.TotalAbundance << "\n";
+    // std::cout << "Nest Stock: " << nest.NestStock << "\n";
+    // std::cout << "Tolerance Intercept: " << nest.TolIntercept << "\n";
+    // std::cout << "Tolerance Slope: " << nest.TolSlope << "\n\n";
 }
 
 // Function to choose a random intruder from a nest and check if it intrudes other nests
@@ -41,7 +42,7 @@ void testResident(const Nest& nest, const std::vector<Nest>& allNests, const par
 
     // Check if the resident can return to other nests
     for (const auto& otherNest : allNests) {
-        if (otherNest.nest_id != nest.nest_id) {
+        if (otherNest.nest_id == nest.nest_id) {
             bool canReturn = otherNest.check_Resident(parameters, resident);
             std::cout << "Resident from Nest " << nest.nest_id << " ";
             if (canReturn)
