@@ -49,6 +49,7 @@ public:
 
     void initialise_pop();                          // Initialise population
     void simulate();                                // Simulate population
+    
 
     int findIndexByNestId(unsigned int nestId);     // returns index of Nest ID in nests vector
 };
@@ -124,7 +125,7 @@ void Population::simulate(){
                     // Returning with food, resident check
                 }
                 // Success or No success, simply add back to colony
-                // Also decide next task based on current status
+                // Also decide next task based on current status / LC or edit that at an earlier point
             }
             std::cout << "Nest ID: " << cf.nest_id << ", Individual ID: " << cf.ind_id 
             << ", t_birth: " << cf.t_birth << ", t_next: " << cf.t_next << std::endl;

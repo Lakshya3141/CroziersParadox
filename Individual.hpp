@@ -9,7 +9,7 @@
 #ifndef Individual_hpp
 #define Individual_hpp
 
-#include<algorithm>
+#include <algorithm>
 #include <stdexcept>
 #include "Parameters.hpp"
 #include "Random.hpp"

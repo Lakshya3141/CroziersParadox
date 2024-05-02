@@ -40,6 +40,8 @@ struct params {
     double dFracKilled = 0.4;                    // Mortality rate after dRemovalTime
     double dMetabolicCost = 40.0;                // Metabolic cost for cue production
     double dMutationStrength = 0.0001;              // Mutation strength
+    // LC: Add variable to make evolvability by 10
+    // So that ants in the colony are closer.
     double dMutBias = 0.0;                       // Mutation bias
     int iNumWorkers = 2;                        // Number of workers in each colony
     int iNumCues = 5;                           // Number of Cues

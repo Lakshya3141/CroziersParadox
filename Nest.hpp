@@ -32,7 +32,7 @@ public:
     double TolSlope;                            // Slope for linear/logistic threshold curve
 
     // Nest functions
-    void mutate(const params& p);               // Mutates nest cues for new nest
+    void mutate(const params& p);               // Mutates nest cues and neutral gene for new nest
     // Function to check intruder stealing food
     bool check_Intruder(const params& p, const std::vector<double>& otherProfile) const;
     // Function to check resident returning after foraging trip
