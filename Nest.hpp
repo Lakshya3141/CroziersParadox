@@ -30,6 +30,8 @@ public:
     int NestStock;                              // Food stock with nest
     double TolIntercept;                        // Intercept for linear/logistic threshold curve
     double TolSlope;                            // Slope for linear/logistic threshold curve
+    double tbirth = gtime;                      // Time of birth
+    int num_offsprings = 0.0;                   // Number of offsprings
 
     // Nest functions
     void mutate(const params& p);               // Mutates nest cues and neutral gene for new nest

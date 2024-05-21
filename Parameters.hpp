@@ -21,6 +21,7 @@
 double gtime = 0.0;                            // Global time
 double max_gtime_evolution = 1.0;          // Time for evolution phase of simulations
 double dRemovalTime = 1000.0;                  // Removal time -> numTicks after which lowest stock colonies die
+double dReproductionTime = dRemovalTime;       // Reproduction time -> numTicks after mass reproduction occurs
 double dStep = 1.0;                            // Time to go/come back from a foraging/colony
 
 const double dInitIntercept = 0.0;          // Initial value of intercept for linear / logistic comparison
@@ -39,9 +40,8 @@ struct params {
     // Below are the default values for parameters to be read from config file
     double dFracKilled = 0.4;                    // Mortality rate after dRemovalTime
     double dMetabolicCost = 40.0;                // Metabolic cost for cue production
-    double dMutationStrength = 0.0001;              // Mutation strength
-    // LC: Add variable to make evolvability by 10
-    // So that ants in the colony are closer.
+    double dMutationStrength = 0.01;             // Mutation strength
+    double dFracIndMutStrength = 0.1;            // multiplied by mutation strength for individuals
     double dMutBias = 0.0;                       // Mutation bias
     int iNumWorkers = 2;                        // Number of workers in each colony
     int iNumCues = 5;                           // Number of Cues
@@ -49,10 +49,17 @@ struct params {
     int iInitNestStock = 25;                          // Initial stock of colony at start/after removal
     int iInitFoodStock = 300;                     // Intial food stock available for foraging
     double dExpParam = 0.1;                       // Exponential parameter, 1/dExpParam is from which initial cues are sampled
+    
     std::string sModelChoice = "gestalt";        // Model choice: "control", "uabsent", "dpresent", "gestalt"
     int iModelChoice = convertStringModeltoInt(sModelChoice);       // Int value for model choice to have in if statements
     std::string sTolChoice = "linear";    // Tolerance choice: "control", "linear", "logistic"
     int iTolChoice = convertStringTolerancetoInt(sTolChoice);       // Int value for tolerance choice to have in if statements
+    int iKillChoice = 0;                        // 0 for random killing, 1 for sorted killing, 2 for no mass killing
+    int iRepChoice = 0;                         // 0 for mass reproduction, 1 for individual reproduction
+                                                // Can only be 1 when iKillChoice is 2
+    int iFoodResetChoice = 0;                   // Only relevant in mass reproduction
+                                                // 0 for yes reset, 1 for no reset
+
     std::string temp_params_to_record;          // Not relevant now
     std::vector < std::string > param_names_to_record;  // Not relevant now
     std::vector < float > params_to_record;     // Not relevant now

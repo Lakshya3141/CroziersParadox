@@ -17,6 +17,7 @@
 #include <sstream> // For std::ostringstream
 #include <numeric>
 #include <filesystem>
+#include <cmath>
 
 namespace fs = std::filesystem;
 
@@ -43,15 +44,25 @@ public:
     unsigned int nest_id_counter = 0;               // nest ID counter 
     params p;                                       // Parameters defining current population
 
-    // vector to store nest IDs corresponding to nest indexes
+    // vector to store nest IDs and abundances corresponding to nest indexes
     // becomes important as nests die
     std::vector<unsigned int> storer_nest_id;
+    std::vector<double> storer_abundance;
 
     void initialise_pop();                          // Initialise population
     void simulate();                                // Simulate population
+    void kill_nest(const unsigned int nestId);      // Kills specific nest 
+    void reproduce_nest();                          // Single reproduction event
+    int findIndexByNestId(unsigned int nestId);     // returns index of Nest ID in nests vector
+    void mass_kill();                               // kills nests in mass
+    void mass_reproduce();                          // mass reproduces colonies
     
 
-    int findIndexByNestId(unsigned int nestId);     // returns index of Nest ID in nests vector
+private:
+    double last_MassKill_time = 0.0;                // Time since last purge of colonies
+    double last_MassRep_time = 0.0;                 // Time since last mass reproduction event
+    void random_kill();                             // in mass kill, doesnt sort
+    void sorted_kill();                             // in mass kill, sorts and kills
 };
 
 // Lambda function for maintaining priority queue
@@ -63,6 +74,7 @@ void Population::initialise_pop() {
     for(int i=0; i < p.iNumColonies; ++i) {
         nests.emplace_back(nest_id_counter, p);
         storer_nest_id.push_back(nest_id_counter);
+        storer_abundance.push_back(p.iInitNestStock);
         ++nest_id_counter;
     }
     // Initialise natural stock of food
@@ -88,6 +100,10 @@ void Population::simulate(){
             break;
         }
 
+        // LC: Call masskill and mass reproduce every single time
+        // mass_kill()
+        // mass_reproduce();
+
         // Take the next action indiviual and pop it from the queue
         track_time next_event = event_queue.top();
         event_queue.pop();
@@ -102,7 +118,7 @@ void Population::simulate(){
         if (cnestindex != -1) {
 
             auto cindindex = nests[cnestindex].findIndexById(cindid);
-            // dummy current to hold old variable values for current individual
+            // dummy current variable to hold old variable values for current individual
             auto current = nests[cnestindex].NestWorkers[cindindex];
             // cf points to the memory location of the individual
             Individual& cf{nests[cnestid].NestWorkers[cindindex]};
@@ -138,13 +154,98 @@ void Population::simulate(){
 // Function to find index of a particular Nest ID in nests vector
 // By searching in the storer nest ID vector 
 int Population::findIndexByNestId(unsigned int nestId) {
-        auto it = std::find(storer_nest_id.begin(), storer_nest_id.end(), nestId);
-        if (it != storer_nest_id.end()) {
-            return static_cast<int>(std::distance(storer_nest_id.begin(), it));
-        } else {
-            return -1;  // Return -1 if nest_id is not found
-        }
+    auto it = std::find(storer_nest_id.begin(), storer_nest_id.end(), nestId);
+    if (it != storer_nest_id.end()) {
+        return static_cast<int>(std::distance(storer_nest_id.begin(), it));
+    } else {
+        return -1;  // Return -1 if nest_id is not found
+    }
+}
+
+// Function to kill a particular nest ID from nests vector
+// and also from storer_nest_id vector
+void Population::kill_nest(const unsigned int nestID) {
+    int nestIndex = findIndexByNestId(nestID);    // Find index of nest in storer and nests vector
+    remove_from_vec(nests, nestIndex);            // Remove from nest
+    remove_from_vec(storer_nest_id, nestIndex);   // Remove ID from storer nests
+    remove_from_vec(storer_abundance, nestIndex); // Remove abundance from storer abundance
+
+    // Since we also call kill_nest when food runs low
+    // if mass reproduction is not allowed, then produce 1 colony at the same time
+    if (p.iRepChoice == 1) {
+        reproduce_nest();
+    }
+}
+
+void Population::reproduce_nest() {
+    int MotherIndex = chooseProbableIndex(storer_abundance);
+    int MotherNID = storer_nest_id[MotherIndex];
+    
+    
+
+}
+
+// Mass kill function. Depending on value of iKillChoice
+// Does random kill, sorted kill or NO kill
+void Population::mass_kill() {
+    // Check last mass kill time
+    if (gtime - last_MassKill_time < dRemovalTime) {
+        return; // Skip removal if not enough time has passed
     }
 
+    // Implement choice of killing
+    if (p.iKillChoice == 0) {
+        random_kill();
+    } else if (p.iKillChoice == 1) {
+        sorted_kill();
+    } else if (p.iKillChoice == 2) {
+        int dummyVar = 0;
+    } else {
+        throw std::runtime_error("Wrong choice of dFracKilled");
+    }
 
+    last_MassKill_time = gtime;             // Update last massKill time
+}
+
+// implicit function called in mass kill
+// Implements random kill
+void Population::random_kill() {
+    // Calculate number of colonies to be killed
+    int alreadyDead = p.iNumColonies - nests.size();
+    int toKill = floor(p.dFracKilled*p.iNumColonies) - alreadyDead;
+
+    // Take random subset of nestIDs and kill
+    if (toKill > 0) {
+        auto toKillNestIDs = randomSubset(storer_nest_id, toKill);
+        for (int i = 0; i < toKill; i++) {
+            kill_nest(toKillNestIDs[i]);
+        }
+    }
+}
+
+// implicit function called in mass kill
+// Implements sorted kill
+void Population::sorted_kill() {
+    // Calculate number of colonies to be killed
+    int alreadyDead = p.iNumColonies - nests.size();
+    int toKill = floor(p.dFracKilled*p.iNumColonies) - alreadyDead;
+    double threshold_abundance = 0.0;
+    
+    // Find abundance threshold that determines death
+    if (toKill > 0) {
+        auto sorted_abundance = storer_abundance;
+        std::sort(sorted_abundance.begin(), sorted_abundance.end());
+        threshold_abundance = sorted_abundance[toKill];
+    }
+
+    // Kill colonies with abundance lower than threshold abundance
+    int count = 0;
+    while(toKill > 0) {
+        if(storer_abundance[count] <= threshold_abundance) {
+            kill_nest(storer_nest_id[count]);
+            toKill--;
+        }
+        count++;
+    }
+}
 #endif /* Population_hpp */

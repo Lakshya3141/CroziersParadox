@@ -57,6 +57,56 @@ void remove_from_vec(std::vector<T>& v, const size_t idx) {
     v.pop_back();
 }
 
+// Function to randomly select alpha number of individuals
+template <typename T>
+std::vector<T> randomSubset(const std::vector<T>& individuals, int alpha) {
+    // Copy the vector to avoid modifying the original vector
+    std::vector<T> result = individuals;
+
+    if (alpha >= individuals.size()) {
+        // Shuffle the entire vector if alpha is greater or equal to the vector size
+        std::shuffle(result.begin(), result.end(), rn);
+        return result;
+    }
+
+    // Shuffle the vector to randomize the selection
+    std::shuffle(result.begin(), result.end(), rn);
+
+    // Resize the vector to contain only alpha elements
+    result.resize(alpha);
+
+    return result;
+}
+
+int chooseProbableIndex(const std::vector<double>& probabilities) {
+    if (probabilities.empty()) {
+        throw std::invalid_argument("The input vector must not be empty.");
+    }
+
+    // Calculate the total sum of the probabilities
+    double total = std::accumulate(probabilities.begin(), probabilities.end(), 0.0);
+
+    if (total <= 0) {
+        throw std::invalid_argument("The sum of probabilities must be positive.");
+    }
+
+    // Create a cumulative distribution
+    std::vector<double> cumulative(probabilities.size());
+    std::partial_sum(probabilities.begin(), probabilities.end(), cumulative.begin());
+
+    // Normalize the cumulative distribution
+    for (double& value : cumulative) {
+        value /= total;
+    }
+
+    // Generate a random number between 0 and 1
+    double randomValue = uni_real();
+
+    // Find the index corresponding to the random value
+    auto it = std::lower_bound(cumulative.begin(), cumulative.end(), randomValue);
+    return std::distance(cumulative.begin(), it);
+}
+
 // dummy print function for debugging
 void print(){
     std::cout << "DUMMY" << std::endl;
@@ -80,27 +130,6 @@ void printVector(const std::vector<T>& vec) {
         std::cout << element << " ";
     }
     std::cout << "]\n";
-}
-
-// Function to randomly select alpha number of individuals
-template <typename T>
-std::vector<T> randomSubset(const std::vector<T>& individuals, int alpha) {
-    // Copy the vector to avoid modifying the original vector
-    std::vector<T> result = individuals;
-
-    if (alpha >= individuals.size()) {
-        // Shuffle the entire vector if alpha is greater or equal to the vector size
-        std::shuffle(result.begin(), result.end(), rn);
-        return result;
-    }
-
-    // Shuffle the vector to randomize the selection
-    std::shuffle(result.begin(), result.end(), rn);
-
-    // Resize the vector to contain only alpha elements
-    result.resize(alpha);
-
-    return result;
 }
 
 // LC: Some of the functions may be a bit repetitive, cleaning throughout might be an issue

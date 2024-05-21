@@ -56,10 +56,12 @@ Individual::Individual (const int id, const params& p, const std::vector<double>
 // Mutate function
 void Individual::mutate (const params& p) {
     for (int i = 0; i < p.iNumCues; i++) {
-        IndiCues[i] += normal(p.dMutBias, p.dMutationStrength);
+        // Multiplied by a fraction less than 1 such that the individuals are closer
+        // than colonies are
+        IndiCues[i] += normal(p.dMutBias, p.dMutationStrength*p.dFracIndMutStrength);
         if (IndiCues[i] < 0) IndiCues[i] = 0.0;
     }
-    NeutralGene += normal(p.dMutBias, p.dMutationStrength);
+    NeutralGene += normal(p.dMutBias, p.dMutationStrength*p.dFracIndMutStrength);
 }
 
 // Function to calculate Bray Curtis distance for the "gestalt" recognition mode
