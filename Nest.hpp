@@ -22,18 +22,22 @@ public:
     
     // Nest variables
     unsigned int nest_id;                       // Nest ID
+    unsigned int mom_id;                        // Nest ID for mother nest
     unsigned int individual_id_counter = 0;     // Starts every nest ind ID at 0
     std::vector<Individual> NestWorkers;        // Vector containing workers
     std::vector<double> NestMean;               // Nest mean cues
     double NestNeutralGene;                     // Neutral gene for nest
     double TotalAbundance;                      // Total abundance of nest
-    int NestStock;                              // Food stock with nest
+    double NestStock;                              // Food stock with nest
     double TolIntercept;                        // Intercept for linear/logistic threshold curve
     double TolSlope;                            // Slope for linear/logistic threshold curve
     double tbirth = gtime;                      // Time of birth
     int num_offsprings = 0.0;                   // Number of offsprings
+    int num_actions = 0.0;                      // Number of actions
+    double tlast = gtime;                         // Last time of action
 
     // Nest functions
+    void metabolic_cost(const params& p);       // Subtracts metabolic cost of 1 action
     void mutate(const params& p);               // Mutates nest cues and neutral gene for new nest
     // Function to check intruder stealing food
     bool check_Intruder(const params& p, const std::vector<double>& otherProfile) const;
@@ -52,9 +56,9 @@ Nest::Nest(const unsigned int nid, const params& p) : nest_id(nid) {
     for (int i = 0; i < p.iNumCues; i++) {
         NestMean.push_back(exponential(p.dExpParam));
     }
-
+    mom_id = 0;                                     // Initial nests
     calculate_abundance(p);                         // Calculate abundance
-    NestStock = p.iInitNestStock;                   // Create initial nest stock
+    NestStock = p.iInitNestStock + uni_real()/10;   // Create initial nest stock
     // Assign values to neutral, intercept and slope genes
     NestNeutralGene = 0.0 + normal(p.dMutBias, p.dMutationStrength);
     TolIntercept = normal(dInitIntercept, p.dMutationStrength);
@@ -76,8 +80,8 @@ Nest::Nest(const unsigned int nid, const params& p, const Nest& prevNest) :
 
     mutate(p);                      // Mutate nest cues and neutral gene
     calculate_abundance(p);         // Calculate abundance
-    NestStock = p.iInitNestStock;   // Assign initial nest stock
-
+    NestStock = p.iInitNestStock + uni_real()/10;   // Assign initial nest stock
+    mom_id = prevNest.nest_id;      // Assign mom nest ID
     if (bIsCoevolve) {              // If coevolve is true mutate intercept and slope too
         TolIntercept = prevNest.TolIntercept + normal(p.dMutBias, p.dMutationStrength);
         TolSlope = prevNest.TolSlope + normal(p.dMutBias, p.dMutationStrength);
@@ -93,6 +97,12 @@ Nest::Nest(const unsigned int nid, const params& p, const Nest& prevNest) :
         ++individual_id_counter;
         NestWorkers.push_back(newWorker);
     }
+}
+
+// Subtract metabolic cost
+void Nest::metabolic_cost(const params& p){
+    NestStock += (gtime - tlast)*p.dRateNestStock - p.dMetabolicCost*TotalAbundance/2000.0/static_cast<double>(p.iNumWorkers);
+    tlast = gtime;
 }
 
 // Calculate total abundance from NestMean
@@ -153,7 +163,7 @@ bool Nest::check_Intruder(const params& p, const std::vector<double>& otherProfi
     // Get tolerance based on distance metric decided
     double tolerance = get_Tolerance(p, distance);
     // 
-    return !bernoulli(tolerance);
+    return bernoulli(tolerance);
 }
 
 // Resident nest function to check if resident can return successfully
@@ -186,7 +196,7 @@ bool Nest::check_Resident(const params& p, const Individual& resident) const {
     }
     // Get tolerance from distance and choice of model
     double tolerance = get_Tolerance(p, distance);
-    return !bernoulli(tolerance);
+    return bernoulli(tolerance);
 }
 
 double Nest::get_Tolerance(const params&p, const double distance) const {

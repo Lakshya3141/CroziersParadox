@@ -19,8 +19,8 @@
 
 // Variables needed at compile time OR variables not explored in variation
 double gtime = 0.0;                            // Global time
-double max_gtime_evolution = 1.0;          // Time for evolution phase of simulations
-double dRemovalTime = 1000.0;                  // Removal time -> numTicks after which lowest stock colonies die
+double max_gtime_evolution = 1000.0;          // Time for evolution phase of simulations
+double dRemovalTime = 200.0;                  // Removal time -> numTicks after which lowest stock colonies die
 double dReproductionTime = dRemovalTime;       // Reproduction time -> numTicks after mass reproduction occurs
 double dStep = 1.0;                            // Time to go/come back from a foraging/colony
 
@@ -45,20 +45,22 @@ struct params {
     double dMutBias = 0.0;                       // Mutation bias
     int iNumWorkers = 2;                        // Number of workers in each colony
     int iNumCues = 5;                           // Number of Cues
-    int iNumColonies = 3;                        // Number of colonies
-    int iInitNestStock = 25;                          // Initial stock of colony at start/after removal
-    int iInitFoodStock = 300;                     // Intial food stock available for foraging
+    int iNumColonies = 5;                        // Number of colonies
+    double iInitNestStock = 25.0;                          // Initial stock of colony at start/after removal
+    double dInitFoodStock = 300.0;                     // Intial food stock available for foraging
     double dExpParam = 0.1;                       // Exponential parameter, 1/dExpParam is from which initial cues are sampled
-    
+    double dMeanActionTime = 1.0;               // Average time of action for gillespe algorithm
+    double dRatePopStock = 150.0;               //  Rate of regeneration of population stock per unit time
+    double dRateNestStock = 1.0/24.0;               // Rate of regeneration of nest stock per unit time
+
     std::string sModelChoice = "gestalt";        // Model choice: "control", "uabsent", "dpresent", "gestalt"
     int iModelChoice = convertStringModeltoInt(sModelChoice);       // Int value for model choice to have in if statements
     std::string sTolChoice = "linear";    // Tolerance choice: "control", "linear", "logistic"
     int iTolChoice = convertStringTolerancetoInt(sTolChoice);       // Int value for tolerance choice to have in if statements
-    int iKillChoice = 0;                        // 0 for random killing, 1 for sorted killing, 2 for no mass killing
-    int iRepChoice = 0;                         // 0 for mass reproduction, 1 for individual reproduction
-                                                // Can only be 1 when iKillChoice is 2
-    int iFoodResetChoice = 0;                   // Only relevant in mass reproduction
-                                                // 0 for yes reset, 1 for no reset
+    int iKillChoice = 2;                        // 0 for random killing, 1 for sorted killing, 2 for no mass killing
+    int iRepChoice = 2;                         // 0 for mass reproduction, 1 for individual reproduction, 2 for both
+    int iFoodResetChoice = 1;                   // Only relevant in mass reproduction
+                                                // 1 for yes reset, 0 for no reset
 
     std::string temp_params_to_record;          // Not relevant now
     std::vector < std::string > param_names_to_record;  // Not relevant now

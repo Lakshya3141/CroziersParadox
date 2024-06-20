@@ -11,7 +11,6 @@ int main() {
     // Initialize the population
     population.initialise_pop();
 
-    population.kill_nest(1);
     // Simulate the population
     population.simulate();
 
