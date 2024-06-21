@@ -6,7 +6,7 @@ int main() {
     params p;
 
     // Define nest mean and neutral gene
-    std::vector<double> nestMean = {0.5, 0.3, 0.8, 0.2, 0.6};
+    std::vector<double> nestMean = {164, 57, 266, 41, 49};//{1, 3, 5, 70, 20};
     double nestNeutral = 0.1;
 
     // Initialize individuals
@@ -42,7 +42,8 @@ int main() {
     }
 
     // Test distance functions
-    std::vector<double> otherProfile = {0.4, 0.6, 0.7, 0.1, 0.5};
+    // std::vector<double> nestMean = {0.01, 0.02, 0.005, 0.003, 0.02};
+    std::vector<double> otherProfile = {3, 169, 9, 131, 6};
     std::cout << "\nDistance calculations:" << std::endl;
     for (const auto& ind : individuals) {
         double gestaltDist = ind.calculateGestaltDist(nestMean, otherProfile);

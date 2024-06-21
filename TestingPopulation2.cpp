@@ -23,7 +23,7 @@ int main() {
     // Initialize parameters with some default values
     par.iNumColonies = 10;  // Number of colonies
     par.dInitFoodStock = 100; // Initial food stock
-    par.iInitNestStock = 50; // Initial nest stock
+    par.dInitNestStock = 50; // Initial nest stock
     // You can set other parameters as needed
 
     // Create a population

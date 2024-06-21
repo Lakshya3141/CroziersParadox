@@ -12,8 +12,8 @@ int main() {
     std::cout << "iNumWorkers: " << p.iNumWorkers << std::endl;
     std::cout << "iNumCues: " << p.iNumCues << std::endl;
     std::cout << "iNumColonies: " << p.iNumColonies << std::endl;
-    std::cout << "iInitNestStock: " << p.iInitNestStock << std::endl;
-    std::cout << "iInitFoodStock: " << p.iInitFoodStock << std::endl;
+    std::cout << "iInitNestStock: " << p.dInitNestStock << std::endl;
+    std::cout << "iInitFoodStock: " << p.dInitFoodStock << std::endl;
     std::cout << "dExpParam: " << p.dExpParam << std::endl;
     std::cout << "sModelChoice: " << p.sModelChoice << std::endl;
     std::cout << "sTolChoice: " << p.sTolChoice << std::endl;

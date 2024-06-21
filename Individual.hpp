@@ -49,8 +49,8 @@ Individual::Individual (const int id, const params& p, const std::vector<double>
         IndiCues.push_back(NestMean[i]);
     }
     mutate(p);
-    t_birth = gtime + uni_real();
-    t_next = t_birth;
+    t_birth = gtime;
+    t_next = t_birth + exponential(p.dMeanActionTime);
 }
 
 // Mutate function

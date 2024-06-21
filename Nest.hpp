@@ -58,7 +58,7 @@ Nest::Nest(const unsigned int nid, const params& p) : nest_id(nid) {
     }
     mom_id = 0;                                     // Initial nests
     calculate_abundance(p);                         // Calculate abundance
-    NestStock = p.iInitNestStock + uni_real()/10;   // Create initial nest stock
+    NestStock = p.dInitNestStock + uni_real()/10;   // Create initial nest stock
     // Assign values to neutral, intercept and slope genes
     NestNeutralGene = 0.0 + normal(p.dMutBias, p.dMutationStrength);
     TolIntercept = normal(dInitIntercept, p.dMutationStrength);
@@ -80,7 +80,7 @@ Nest::Nest(const unsigned int nid, const params& p, const Nest& prevNest) :
 
     mutate(p);                      // Mutate nest cues and neutral gene
     calculate_abundance(p);         // Calculate abundance
-    NestStock = p.iInitNestStock + uni_real()/10;   // Assign initial nest stock
+    NestStock = p.dInitNestStock + uni_real()/10;   // Assign initial nest stock
     mom_id = prevNest.nest_id;      // Assign mom nest ID
     if (bIsCoevolve) {              // If coevolve is true mutate intercept and slope too
         TolIntercept = prevNest.TolIntercept + normal(p.dMutBias, p.dMutationStrength);
@@ -163,7 +163,7 @@ bool Nest::check_Intruder(const params& p, const std::vector<double>& otherProfi
     // Get tolerance based on distance metric decided
     double tolerance = get_Tolerance(p, distance);
     // 
-    return bernoulli(tolerance);
+    return !bernoulli(tolerance);
 }
 
 // Resident nest function to check if resident can return successfully
@@ -196,7 +196,7 @@ bool Nest::check_Resident(const params& p, const Individual& resident) const {
     }
     // Get tolerance from distance and choice of model
     double tolerance = get_Tolerance(p, distance);
-    return bernoulli(tolerance);
+    return !bernoulli(tolerance);
 }
 
 double Nest::get_Tolerance(const params&p, const double distance) const {

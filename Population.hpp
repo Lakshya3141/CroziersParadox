@@ -35,10 +35,13 @@ struct track_time {
     {}
 };
 
+// Lambda function for maintaining priority queue
+auto cmptime = [](const track_time& a, const track_time& b) { return a.time > b.time; };
+
 class Population {
 public:
     // Constructor for population from parameter struct
-    Population(const params& par) : p(par) { };
+    Population(const params& par) : p(par), event_queue(cmptime) { };
 
     std::vector<Nest> nests;                        // Vector containing nests
     unsigned int nest_id_counter = 1;               // nest ID counter 
@@ -68,18 +71,23 @@ private:
     void sorted_kill();                             // in mass kill, sorts and kills
     void remove_nest(const unsigned int nestID);    // remove nests used in mass kill
     double tlastregen = 0.0;    
+    std::priority_queue<track_time, std::vector<track_time>, decltype(cmptime)> event_queue; // Event queue
+    //LC dummy variables for double checks
+    int count1 = 0;
+    int count2 = 0;
+    int count3 = 0;
+    int count4 = 0;
+    int count5 = 0;
+    int count6 = 0;
+    int count7 = 0;
 };
 
-// Lambda function for maintaining priority queue
-auto cmptime = [](const track_time& a, const track_time& b) { return a.time > b.time; };
 
 // initialise population function
 void Population::initialise_pop() {
     // Create nests and push them to nests and storer_nest_id vector
     for(int i=0; i < p.iNumColonies; ++i) {
         nests.emplace_back(nest_id_counter, p);
-        // storer_nest_id.push_back(nest_id_counter);  // LC remove
-        // storer_stocks.push_back(p.iInitNestStock);   // LC remove
         ++nest_id_counter;
     }
 
@@ -88,7 +96,7 @@ void Population::initialise_pop() {
 
 void Population::simulate(){
     // Create a priority queue to track individuals by their next action time
-    std::priority_queue<track_time, std::vector<track_time>, decltype(cmptime)> event_queue(cmptime);
+    // std::priority_queue<track_time, std::vector<track_time>, decltype(cmptime)> event_queue(cmptime);
     
     // Initialize the event queue with individuals and their initial next action times
     for (auto& nest : nests) {
@@ -105,7 +113,7 @@ void Population::simulate(){
             break;
         }
 
-        // LC: Call masskill and mass reproduce every single time
+        //Call masskill and mass reproduce every single time
         mass_kill();
         mass_reproduce();
 
@@ -137,51 +145,62 @@ void Population::simulate(){
             if (current.bIsGoing) {
                 // If outside colony, check whether foraging or steal
                 int if_target = target_nest(current);
-
+                // If foraging
+                count7++;               //LC
                 if (current.bForage) {
                     PopStock -= 1.0;            // Reduce population stock size
-                    current.bIsGoing = false;
                     current.bSuccesfulFood = true;
-
+                    count5++;           //LC
                 } else {
                     // If stealing
-                    current.bIsGoing = false;
                     int target_nest_index = findIndexByNestId(if_target);
+                    // Check if intrusion is successful
                     bool success = nests[target_nest_index].check_Intruder(p, current.IndiCues);
+                    count3++;       //LC
+                    // if successful in stealing
                     if (success) {
                         nests[target_nest_index].NestStock -= 1.0;
                         update_storer();
                         current.bSuccesfulFood = true;
                         check_nests(if_target);
+                        count4++;   //LC
                     }
                     current.bSuccesfulFood = false;
                 }
+                // Action done, change to incoming
+                current.bIsGoing = false;
             } else {
                 // If returning to colony, check whether successful or not
-                current.bIsGoing = true;
                 if (current.bSuccesfulFood) {
                     // Returning with food, resident check
                     bool greatEntry = nests[cnestindex].check_Resident(p, current);
+                    count2++; //LC
                     if (greatEntry) {
                         nests[cnestindex].NestStock += 1.0;
                         update_storer();
+                        count1++;           // LC
                     }
                 }
+                count6++;           //LC
                 // Success or No success, simply add back to colony
-                // Also decide next task based on current status / LC or edit that at an earlier point
+                current.bIsGoing = true;
             }
             std::cout << "Nest ID: " << oldrec.nest_id << ", Individual ID: " << oldrec.ind_id 
-            << ", t_birth: " << oldrec.t_birth << ", t_next: " << oldrec.t_next << std::endl;
+            << ", t_birth: " << oldrec.t_birth << ", t_next: " << oldrec.t_next << ", Go: " << oldrec.bIsGoing << ", Steal: " << !oldrec.bForage  << std::endl;
+            // std::cout << count1 << "/" << count2 << "  Res|Int  " << count4 << "/" << count3;  //LC
+            // std::cout << "   For:" << count5 << "   Rer:" << count6 << "   Go:" << count7;
+            // std::cout << "   PopSt:" << PopStock << std::endl;
             event_queue.push(current);
             check_nests(cnestid);
         }
-
+        // Last action time of population assigned to tlastregen
         tlastregen = gtime;
         
     }
 }
 
 // Function to check nest ID for negative food
+// Kill nest if negative food is found
 void Population::check_nests(const unsigned int nestId) {
     int nest_index = findIndexByNestId(nestId);
     if (storer_stocks[nest_index] < 0.0) {
@@ -191,6 +210,9 @@ void Population::check_nests(const unsigned int nestId) {
 
 // Function to regenerate food linearly
 void Population::regenerate_food(){
+    if (PopStock < 0.0) {
+        PopStock = 0.0;
+    }
     PopStock += (gtime - tlastregen)*p.dRatePopStock;
 }
 
@@ -200,10 +222,13 @@ int Population::target_nest(Individual& indi){
     double num = static_cast<double>(nests.size() - 1);
     double denom = static_cast<double>(PopStock + nests.size() - 1);
 
+    // Take bernoulli of fraction
     if (bernoulli(num/denom)) {
+        // Stealing from other colony
         indi.bForage = false;
         int target_nest = indi.nest_id;
         std::vector<double> dumvec(nests.size(), 1.0);
+        // Ensure target colony isnt the same
         while (target_nest == indi.nest_id) {
             target_nest = storer_nest_id[chooseProbableIndex(dumvec)];
         }
@@ -229,11 +254,6 @@ void Population::update_storer(){
         dummy_stocks.push_back(curnest.NestStock);
     }
 
-    // Print error message for checking in case mismatch
-    // if (dummy_stocks != storer_stocks || dummy_nest_id != storer_nest_id) {
-    //     std::cout << "Mismatch in storeres detected" << std::endl;
-    // } // LC remove
-
     // Assign values
     storer_stocks = dummy_stocks;
     storer_nest_id = dummy_nest_id;
@@ -257,8 +277,6 @@ int Population::findIndexByNestId(unsigned int nestId) {
 void Population::kill_nest(const unsigned int nestID) {
     int nestIndex = findIndexByNestId(nestID);    // Find index of nest in storer and nests vector
     remove_from_vec(nests, nestIndex);            // Remove from nest
-    // remove_from_vec(storer_nest_id, nestIndex);   // Remove ID from storer nests // LC remove
-    // remove_from_vec(storer_stocks, nestIndex); // Remove food stock from storer food stock // LC remove
     update_storer();
 
     // Since we also call kill_nest when food runs low
@@ -288,9 +306,12 @@ void Population::reproduce_nest() {
 
         // Reproduce
         nests.emplace_back(nest_id_counter, p, mom_nest);
-        // storer_nest_id.push_back(nest_id_counter);  // LC remove
-        // storer_stocks.push_back(p.iInitNestStock);   // LC remove
         ++nest_id_counter;
+
+        // Add new individuals to event queue
+        for (auto ind : nests.back().NestWorkers){
+            event_queue.push(track_time(ind));
+        }
 
         // Increase mother offspring count
         mom_nest.num_offsprings++;
@@ -316,11 +337,18 @@ void Population::mass_reproduce() {
             nests.emplace_back(nest_id_counter, p, mom_nest);
             ++nest_id_counter;
             num_currentNests = nests.size();
+            mom_nest.num_offsprings++;
+
+            // Add new workers to event queue
+            for (auto ind : nests.back().NestWorkers){
+                event_queue.push(track_time(ind));
+            }
         }
         if (p.iFoodResetChoice == 1) {
             for (auto& nest : nests) {
-                nest.NestStock = p.iInitNestStock + uni_real()/10;
+                nest.NestStock = p.dInitNestStock + uni_real()/10;
             }
+            PopStock = p.dInitFoodStock;
         }
         update_storer();
     }
@@ -397,6 +425,7 @@ void Population::sorted_kill() {
     auto dummy_nestIDs = storer_nest_id;
     auto dummy_stocks = storer_stocks;
 
+    // Remove nests using IDs
     for (int i = 0; i < dummy_stocks.size(); i++) {
         if (dummy_stocks[i] <= threshold_stock) {
             remove_nest(dummy_nestIDs[i]);

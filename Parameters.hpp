@@ -28,7 +28,7 @@ const double dInitIntercept = 0.0;          // Initial value of intercept for li
 const double dInitSlope = 1.0;              // Initial value of slope for linear / logistic function
 
 // dubious parameters we MAY wanna explore
-bool bIsCoevolve = true;   
+bool bIsCoevolve = false;   
 
 // The struct below defines parameters that WILL BE read
 // from a config file. For now, defining the default values for these
@@ -40,26 +40,26 @@ struct params {
     // Below are the default values for parameters to be read from config file
     double dFracKilled = 0.4;                    // Mortality rate after dRemovalTime
     double dMetabolicCost = 40.0;                // Metabolic cost for cue production
-    double dMutationStrength = 0.01;             // Mutation strength
+    double dMutationStrength = 1.0;             // Mutation strength
     double dFracIndMutStrength = 0.1;            // multiplied by mutation strength for individuals
     double dMutBias = 0.0;                       // Mutation bias
-    int iNumWorkers = 2;                        // Number of workers in each colony
+    int iNumWorkers = 5;                        // Number of workers in each colony
     int iNumCues = 5;                           // Number of Cues
     int iNumColonies = 5;                        // Number of colonies
-    double iInitNestStock = 25.0;                          // Initial stock of colony at start/after removal
+    double dInitNestStock = 25.0;                          // Initial stock of colony at start/after removal
     double dInitFoodStock = 300.0;                     // Intial food stock available for foraging
-    double dExpParam = 0.1;                       // Exponential parameter, 1/dExpParam is from which initial cues are sampled
+    double dExpParam = 0.01;                       // Exponential parameter, 1/dExpParam is from which initial cues are sampled
     double dMeanActionTime = 1.0;               // Average time of action for gillespe algorithm
-    double dRatePopStock = 150.0;               //  Rate of regeneration of population stock per unit time
+    double dRatePopStock = 5.0; //150.0;               //  Rate of regeneration of population stock per unit time
     double dRateNestStock = 1.0/24.0;               // Rate of regeneration of nest stock per unit time
 
     std::string sModelChoice = "gestalt";        // Model choice: "control", "uabsent", "dpresent", "gestalt"
     int iModelChoice = convertStringModeltoInt(sModelChoice);       // Int value for model choice to have in if statements
     std::string sTolChoice = "linear";    // Tolerance choice: "control", "linear", "logistic"
     int iTolChoice = convertStringTolerancetoInt(sTolChoice);       // Int value for tolerance choice to have in if statements
-    int iKillChoice = 2;                        // 0 for random killing, 1 for sorted killing, 2 for no mass killing
+    int iKillChoice = 1;                        // 0 for random killing, 1 for sorted killing, 2 for no mass killing
     int iRepChoice = 2;                         // 0 for mass reproduction, 1 for individual reproduction, 2 for both
-    int iFoodResetChoice = 1;                   // Only relevant in mass reproduction
+    int iFoodResetChoice = 0;                   // Only relevant in mass reproduction
                                                 // 1 for yes reset, 0 for no reset
 
     std::string temp_params_to_record;          // Not relevant now
