@@ -53,7 +53,7 @@ public:
     std::vector<double> storer_stocks;
 
     void initialise_pop();                          // Initialise population
-    void simulate();                                // Simulate population
+    void simulate(const std::vector<std::string>& param_names);                                // Simulate population
     void update_storer();                           // Updates the storer vectors
     void kill_nest(const unsigned int nestId);      // Kills specific nest 
     void reproduce_nest();                          // Single reproduction event
@@ -94,7 +94,7 @@ void Population::initialise_pop() {
     update_storer();
 }
 
-void Population::simulate(){
+void Population::simulate(const std::vector<std::string>& param_names){
     // Create a priority queue to track individuals by their next action time
     // std::priority_queue<track_time, std::vector<track_time>, decltype(cmptime)> event_queue(cmptime);
     
@@ -185,8 +185,8 @@ void Population::simulate(){
                 // Success or No success, simply add back to colony
                 current.bIsGoing = true;
             }
-            std::cout << "Nest ID: " << oldrec.nest_id << ", Individual ID: " << oldrec.ind_id 
-            << ", t_birth: " << oldrec.t_birth << ", t_next: " << oldrec.t_next << ", Go: " << oldrec.bIsGoing << ", Steal: " << !oldrec.bForage  << std::endl;
+            // std::cout << "Nest ID: " << oldrec.nest_id << ", Individual ID: " << oldrec.ind_id 
+            // << ", t_birth: " << oldrec.t_birth << ", t_next: " << oldrec.t_next << ", Go: " << oldrec.bIsGoing << ", Steal: " << !oldrec.bForage  << std::endl;
             // std::cout << count1 << "/" << count2 << "  Res|Int  " << count4 << "/" << count3;  //LC
             // std::cout << "   For:" << count5 << "   Rer:" << count6 << "   Go:" << count7;
             // std::cout << "   PopSt:" << PopStock << std::endl;
@@ -221,9 +221,12 @@ void Population::regenerate_food(){
 int Population::target_nest(Individual& indi){
     double num = static_cast<double>(nests.size() - 1);
     double denom = static_cast<double>(PopStock + nests.size() - 1);
-
+    bool decision = bernoulli(num/denom);
     // Take bernoulli of fraction
-    if (bernoulli(num/denom)) {
+    if (!decision || PopStock < 1.0) {
+        indi.bForage = true;
+        return -1;
+    } else {
         // Stealing from other colony
         indi.bForage = false;
         int target_nest = indi.nest_id;
@@ -233,10 +236,6 @@ int Population::target_nest(Individual& indi){
             target_nest = storer_nest_id[chooseProbableIndex(dumvec)];
         }
         return target_nest;
-
-    } else {
-        indi.bForage = true;
-        return -1;
     }
 }
 

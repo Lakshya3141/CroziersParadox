@@ -142,19 +142,28 @@ bool Nest::check_Intruder(const params& p, const std::vector<double>& otherProfi
     // Choose a resident ant at random to interact with the intruder LC????
     size_t resIndex = uni_int(0, NestWorkers.size());
     
-    switch (p.iModelChoice)
+    switch (static_cast<int>(p.iModelChoice))
     {   // Calculate distance of intruder from resident based on choice of model
     case 0:
         distance = NestWorkers[resIndex].calculateGestaltDist(NestMean, otherProfile);
         break;
     case 1:
-        distance = NestWorkers[resIndex].calculateDPresentDist(otherProfile);
+        distance = NestWorkers[resIndex].calculateDPresentDist(NestMean, otherProfile);
         break;
     case 2:
-        distance = NestWorkers[resIndex].calculateUAbsentDist(otherProfile);
+        distance = NestWorkers[resIndex].calculateUAbsentDist(NestMean, otherProfile);
         break;
     case 3:
         distance = uni_real();
+        break;
+    case 4:
+        distance = NestWorkers[resIndex].calculateGestaltDistInd(otherProfile);
+        break;
+    case 5:
+        distance = NestWorkers[resIndex].calculateDPresentDistInd(otherProfile);
+        break;
+    case 6:
+        distance = NestWorkers[resIndex].calculateUAbsentDistInd(otherProfile);
         break;
     default:
         break;
@@ -177,19 +186,28 @@ bool Nest::check_Resident(const params& p, const Individual& resident) const {
         }   
     }
 
-    switch (p.iModelChoice)
+    switch (static_cast<int>(p.iModelChoice))
     {   // Calculate distance of returning resident from resident based on choice of model
     case 0:
         distance = NestWorkers[resIndex].calculateGestaltDist(NestMean, resident.IndiCues);
         break;
     case 1:
-        distance = NestWorkers[resIndex].calculateDPresentDist(resident.IndiCues);
+        distance = NestWorkers[resIndex].calculateDPresentDist(NestMean, resident.IndiCues);
         break;
     case 2:
-        distance = NestWorkers[resIndex].calculateUAbsentDist(resident.IndiCues);
+        distance = NestWorkers[resIndex].calculateUAbsentDist(NestMean, resident.IndiCues);
         break;
     case 3:
         distance = uni_real();
+        break;
+    case 4:
+        distance = NestWorkers[resIndex].calculateGestaltDistInd(resident.IndiCues);
+        break;
+    case 5:
+        distance = NestWorkers[resIndex].calculateDPresentDistInd(resident.IndiCues);
+        break;
+    case 6:
+        distance = NestWorkers[resIndex].calculateUAbsentDistInd(resident.IndiCues);
         break;
     default:
         break;
@@ -202,7 +220,7 @@ bool Nest::check_Resident(const params& p, const Individual& resident) const {
 double Nest::get_Tolerance(const params&p, const double distance) const {
     double tolerance = 0.0;
 
-    switch (p.iTolChoice)
+    switch (static_cast<int>(p.iTolChoice))
     {
         case 0:         // Linear Tolerance scenario
             tolerance = TolIntercept + TolSlope*distance;

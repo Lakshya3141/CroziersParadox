@@ -10,7 +10,7 @@
 #ifndef Parameters_hpp
 #define Parameters_hpp
 
-// #include "config_parser.h"
+#include "config_parser.h"
 #include <array>
 #include <string>
 #include <vector>
@@ -22,7 +22,10 @@ double gtime = 0.0;                            // Global time
 double max_gtime_evolution = 1000.0;          // Time for evolution phase of simulations
 double dRemovalTime = 200.0;                  // Removal time -> numTicks after which lowest stock colonies die
 double dReproductionTime = dRemovalTime;       // Reproduction time -> numTicks after mass reproduction occurs
-double dStep = 1.0;                            // Time to go/come back from a foraging/colony
+double dPopOutputTime = 200.0;
+double dFracDeadNest = 0.1;
+double dFracLastRecord = 0.05;                  // Records individual movement in last this fraction of simulation
+
 
 const double dInitIntercept = 0.0;          // Initial value of intercept for linear / logistic comparison
 const double dInitSlope = 1.0;              // Initial value of slope for linear / logistic function
@@ -37,65 +40,127 @@ bool bIsCoevolve = false;
 struct params {
     params() {};
     
+    params(const std::string& file_name) {
+        read_parameters_from_ini(file_name);
+    }
+
     // Below are the default values for parameters to be read from config file
     double dFracKilled = 0.4;                    // Mortality rate after dRemovalTime
     double dMetabolicCost = 40.0;                // Metabolic cost for cue production
     double dMutationStrength = 1.0;             // Mutation strength
     double dFracIndMutStrength = 0.1;            // multiplied by mutation strength for individuals
     double dMutBias = 0.0;                       // Mutation bias
-    int iNumWorkers = 5;                        // Number of workers in each colony
-    int iNumCues = 5;                           // Number of Cues
-    int iNumColonies = 5;                        // Number of colonies
+    double iNumWorkers = 5;                        // Number of workers in each colony
+    double iNumCues = 5;                           // Number of Cues
+    double iNumColonies = 5;                        // Number of colonies
     double dInitNestStock = 25.0;                          // Initial stock of colony at start/after removal
     double dInitFoodStock = 300.0;                     // Intial food stock available for foraging
-    double dExpParam = 0.01;                       // Exponential parameter, 1/dExpParam is from which initial cues are sampled
+    double dExpParam = 0.1;                       // Exponential parameter, 1/dExpParam is from which initial cues are sampled
     double dMeanActionTime = 1.0;               // Average time of action for gillespe algorithm
     double dRatePopStock = 5.0; //150.0;               //  Rate of regeneration of population stock per unit time
-    double dRateNestStock = 1.0/24.0;               // Rate of regeneration of nest stock per unit time
+    double dRateNestStock = 0.0/24.0;               // Rate of regeneration of nest stock per unit time
 
-    std::string sModelChoice = "gestalt";        // Model choice: "control", "uabsent", "dpresent", "gestalt"
-    int iModelChoice = convertStringModeltoInt(sModelChoice);       // Int value for model choice to have in if statements
-    std::string sTolChoice = "linear";    // Tolerance choice: "control", "linear", "logistic"
-    int iTolChoice = convertStringTolerancetoInt(sTolChoice);       // Int value for tolerance choice to have in if statements
-    int iKillChoice = 1;                        // 0 for random killing, 1 for sorted killing, 2 for no mass killing
-    int iRepChoice = 2;                         // 0 for mass reproduction, 1 for individual reproduction, 2 for both
-    int iFoodResetChoice = 0;                   // Only relevant in mass reproduction
+    double iModelChoice = 0.0;       // Int value for model choice to have in if statements
+    double iTolChoice = 2.0;       // Int value for tolerance choice to have in if statements
+                                    // 0 for linear, 1 for logistic, 2 for control
+    double iKillChoice = 1;                        // 0 for random killing, 1 for sorted killing, 2 for no mass killing
+    double iRepChoice = 4;                         // 0 for mass reproduction, 1 for individual reproduction, 2 for both
+    double iFoodResetChoice = 0;                   // Only relevant in mass reproduction
                                                 // 1 for yes reset, 0 for no reset
 
     std::string temp_params_to_record;          // Not relevant now
     std::vector < std::string > param_names_to_record;  // Not relevant now
     std::vector < float > params_to_record;     // Not relevant now
 
-    // Function to take in string of modelchoice and return the analagous int value.
-    int convertStringModeltoInt(const std::string& ModelChoice) {
-        int dumRes;
-        if (ModelChoice == "gestalt") {
-            dumRes = 0;
-        } else if (ModelChoice == "dpresent") {
-            dumRes = 1;
-        } else if (ModelChoice == "uabsent") {
-            dumRes = 2;
-        } else if(ModelChoice == "control") {
-            dumRes = 3;
-        } else throw std::runtime_error("Wrong model specified"); 
+    void read_parameters_from_ini(const std::string& file_name) {
+        ConfigFile from_config(file_name);
 
-        iModelChoice = dumRes;
-        return dumRes;
+        
+        iNumWorkers              = from_config.getValueOfKey<double>("iNumWorkers");
+        iNumCues                 = from_config.getValueOfKey<double>("iNumCues");
+        iNumColonies             = from_config.getValueOfKey<double>("iNumColonies");
+        dFracKilled              = from_config.getValueOfKey<double>("dFracKilled");
+        dMetabolicCost           = from_config.getValueOfKey<double>("dMetabolicCost");
+        dMutationStrength        = from_config.getValueOfKey<double>("dMutationStrength");
+        dFracIndMutStrength      = from_config.getValueOfKey<double>("dFracIndMutStrength");
+        dMutBias                 = from_config.getValueOfKey<double>("dMutBias");
+        dInitNestStock           = from_config.getValueOfKey<double>("dInitNestStock");
+        dInitFoodStock           = from_config.getValueOfKey<double>("dInitFoodStock");
+        dExpParam                = from_config.getValueOfKey<double>("dExpParam");
+        dMeanActionTime          = from_config.getValueOfKey<double>("dMeanActionTime");
+        dRatePopStock            = from_config.getValueOfKey<double>("dRatePopStock");
+        dRateNestStock           = from_config.getValueOfKey<double>("dRateNestStock");
+        iModelChoice             = from_config.getValueOfKey<double>("iModelChoice");
+        iTolChoice               = from_config.getValueOfKey<double>("iTolChoice");
+        iKillChoice              = from_config.getValueOfKey<double>("iKillChoice");
+        iRepChoice               = from_config.getValueOfKey<double>("iRepChoice");
+        iFoodResetChoice         = from_config.getValueOfKey<double>("iFoodResetChoice");
+        temp_params_to_record    = from_config.getValueOfKey<std::string>("params_to_record");
+        param_names_to_record    = split(temp_params_to_record);
+        params_to_record         = create_params_to_record(param_names_to_record);
     }
 
-    // Function to take in string of tolerance choice and return the analagous int value.
-    int convertStringTolerancetoInt(const std::string& TolChoice) {
-        int dumRes;
-        if (TolChoice == "linear") {
-            dumRes = 0;
-        } else if (TolChoice == "logistic") {
-            dumRes = 1;
-        } else if (TolChoice == "control") {
-            dumRes = 2;
-        } else throw std::runtime_error("Wrong tolerance specified"); 
+    std::vector< std::string > split(std::string s) {
+      // code from: https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
+      std::vector< std::string > output;
+      std::string delimiter = ",";
+      size_t pos = 0;
+      std::string token;
+      while ((pos = s.find(delimiter)) != std::string::npos) {
+        token = s.substr(0, pos);
+        output.push_back(token);
+        s.erase(0, pos + delimiter.length());
+      }
+      output.push_back(s);
+      return output;
+    }
 
-        iTolChoice = dumRes;
-        return dumRes;
+    std::vector< float > create_params_to_record(const std::vector< std::string >& param_names) {
+      std::vector< float > output;
+      for (auto i : param_names) {
+        output.push_back(get_val(i));
+      }
+      return output;
+    }
+
+    float get_val(std::string s) {
+        if (s == "dFracKilled")               return dFracKilled;
+        if (s == "dMetabolicCost")            return dMetabolicCost;
+        if (s == "dMutationStrength")         return dMutationStrength;
+        if (s == "dFracIndMutStrength")       return dFracIndMutStrength;
+        if (s == "dMutBias")                  return dMutBias;
+        if (s == "iNumWorkers")               return iNumWorkers;
+        if (s == "iNumCues")                  return iNumCues;
+        if (s == "iNumColonies")              return iNumColonies;
+        if (s == "dInitNestStock")            return dInitNestStock;
+        if (s == "dInitFoodStock")            return dInitFoodStock;
+        if (s == "dExpParam")                 return dExpParam;
+        if (s == "dMeanActionTime")           return dMeanActionTime;
+        if (s == "dRatePopStock")             return dRatePopStock;
+        if (s == "dRateNestStock")            return dRateNestStock;
+        if (s == "iModelChoice")              return iModelChoice;
+        if (s == "iTolChoice")                return iTolChoice;
+        if (s == "iKillChoice")               return iKillChoice;
+        if (s == "iRepChoice")                return iRepChoice;
+        if (s == "iFoodResetChoice")          return iFoodResetChoice;
+        // ADD PARAMS TO RECORD
+        throw std::runtime_error("can not find parameter");
+        return -1.f; // FAIL
+    }
+
+    void print_string_vals(){
+        std::vector<std::string> modelchoice = {"gestalt", "Dpresent", "Uabsent", "control", "gestaltInd", "DpresentInd", "UabsentInd"};
+        std::vector<std::string> tolchoice = {"linear", "logistic", "control"};
+        std::vector<std::string> killchoice = {"random", "sorted", "nodeath"};
+        std::vector<std::string> repchoice = {"mass", "individual", "both", "control"};
+        std::vector<std::string> foodresetchoice = {"yes", "no"};
+
+
+        std::cout << "Model : " << modelchoice[iModelChoice] << std::endl;
+        std::cout << "Tolerance : " << tolchoice[iTolChoice] << std::endl;
+        std::cout << "KillMode : " << killchoice[iKillChoice] << std::endl;
+        std::cout << "Reproduction : " << repchoice[iRepChoice] << std::endl;
+        std::cout << "Food Reset : " << foodresetchoice[iFoodResetChoice] << std::endl;
     }
 };
 

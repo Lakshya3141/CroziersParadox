@@ -37,8 +37,11 @@ public:
     void mutate(const params& p);   // Mutates individual cues and neutral gene
     // Functions below calculate various distances given profiles
     double calculateGestaltDist(const std::vector<double>& rNestMean, const std::vector<double>& otherProfile) const;
-    double calculateUAbsentDist(const std::vector<double>& otherProfile) const;
-    double calculateDPresentDist(const std::vector<double>& otherProfile) const;
+    double calculateUAbsentDist(const std::vector<double>& rNestMean, const std::vector<double>& otherProfile) const;
+    double calculateDPresentDist(const std::vector<double>& rNestMean, const std::vector<double>& otherProfile) const;
+    double calculateGestaltDistInd(const std::vector<double>& otherProfile) const;
+    double calculateUAbsentDistInd(const std::vector<double>& otherProfile) const;
+    double calculateDPresentDistInd(const std::vector<double>& otherProfile) const;
 };
 
 // constructor for new individuals from mutated Nest Mean
@@ -86,7 +89,80 @@ double Individual::calculateGestaltDist(const std::vector<double>& rNestMean, co
 }
 
 // Function to calculate Bray Curtis distance for the "undesirable-absent" recognition mode
-double Individual::calculateUAbsentDist(const std::vector<double>& otherProfile) const {
+double Individual::calculateUAbsentDist(const std::vector<double>& rNestMean, const std::vector<double>& otherProfile) const {
+    double distance = 0.0;
+    double sum1 = 0.0;
+    double sum2 = 0.0;
+
+    for (size_t i = 0; i < rNestMean.size(); ++i) {
+        distance += std::min(rNestMean[i], otherProfile[i]);
+        if (otherProfile[i] < rNestMean[i]) {
+            sum1 += otherProfile[i];
+            sum2 += otherProfile[i];
+        } else {
+            sum1 += rNestMean[i];
+            sum2 += otherProfile[i];
+        }
+    }
+
+    if ((sum1 + sum2) > 0) {
+        distance = 1.0 - (2.0 * distance / (sum1 + sum2));
+    } else {
+        throw std::runtime_error("Sum of profile elements is zero"); // Throw a runtime error
+    }
+
+    return distance;
+}
+
+// Function to calculate Bray Curtis distance for the "desirable-present" recognition mode
+double Individual::calculateDPresentDist(const std::vector<double>& rNestMean, const std::vector<double>& otherProfile) const {
+    double distance = 0.0;
+    double sum1 = 0.0;
+    double sum2 = 0.0;
+
+    for (size_t i = 0; i < rNestMean.size(); ++i) {
+        distance += std::min(rNestMean[i], otherProfile[i]);
+        if (rNestMean[i] < otherProfile[i]) {
+            sum1 += rNestMean[i];
+            sum2 += rNestMean[i];
+        } else {
+            sum1 += rNestMean[i];
+            sum2 += otherProfile[i];
+        }
+    }
+
+    if ((sum1 + sum2) > 0) {
+        distance = 1.0 - (2.0 * distance / (sum1 + sum2));
+    } else {
+        throw std::runtime_error("Sum of profile elements is zero"); // Throw a runtime error
+    }
+
+    return distance;
+}
+
+// Function to calculate Bray Curtis distance for the "gestalt" recognition mode
+double Individual::calculateGestaltDistInd(const std::vector<double>& otherProfile) const {
+    double distance = 0.0;
+    double sum1 = 0.0;
+    double sum2 = 0.0;
+
+    for (size_t i = 0; i < IndiCues.size(); ++i) {
+        distance += std::min(IndiCues[i], otherProfile[i]);
+        sum1 += IndiCues[i];
+        sum2 += otherProfile[i];
+    }
+
+    if ((sum1 + sum2) > 0) {
+        distance = 1.0 - (2.0 * distance / (sum1 + sum2));
+    } else {
+        throw std::runtime_error("Sum of profile elements is zero"); // Throw a runtime error
+    }
+
+    return distance;
+}
+
+// Function to calculate Bray Curtis distance for the "undesirable-absent" recognition mode
+double Individual::calculateUAbsentDistInd(const std::vector<double>& otherProfile) const {
     double distance = 0.0;
     double sum1 = 0.0;
     double sum2 = 0.0;
@@ -112,7 +188,7 @@ double Individual::calculateUAbsentDist(const std::vector<double>& otherProfile)
 }
 
 // Function to calculate Bray Curtis distance for the "desirable-present" recognition mode
-double Individual::calculateDPresentDist(const std::vector<double>& otherProfile) const {
+double Individual::calculateDPresentDistInd(const std::vector<double>& otherProfile) const {
     double distance = 0.0;
     double sum1 = 0.0;
     double sum2 = 0.0;
