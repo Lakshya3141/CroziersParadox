@@ -697,7 +697,7 @@ void Population::printPopulationState(const std::vector< float >& param_values, 
     
     // LC:: Test statement to see progression of code in SLURM outputs
     // std::cout << total_females << " : " << gtime <<std::endl;
-
+// evolution_file << "gtime,popstock,popsize,cuesimpson,cueshannon,cueman_avg,cueman_std,relatedness,neutral_avg,neutral_std,int_avg,int_std,slope_avg,slope_std,cueabun_avg,cueabun_std,steal_avg,steal_std,sucsteal_avg,sucsteal_std,for_avg,for_std,sucfor_avg,sucfor_std,rentry_avg,rentry_std,sucrentry_avg,sucrentry_std,sucfood_avg,sucfood_std,offprings_avg,offspring_std";
     stat = mean_std(fem_values);
     // Output mean and standard deviation to CSV
     csv_file << "," << std::get<0>(stat) << "," << std::get<1>(stat);

@@ -64,22 +64,29 @@ public:
     int target_nest(Individual& indi);               // find nest to steal from, or forage
     void check_nests(const unsigned int nestId);    // Check if nestID is alive, kill if not 
 
+    // Output functions
+    void printPopulationState(const std::vector< float >& param_values, std::ostream& csv_file);
+    void printDeadNestsData(const std::vector< float >& param_values, std::ostream& csv_file); 
+
 private:
     double last_MassKill_time = 0.0;                // Time since last purge of colonies
     double last_MassRep_time = 0.0;                 // Time since last mass reproduction event
     void random_kill();                             // in mass kill, doesnt sort
     void sorted_kill();                             // in mass kill, sorts and kills
     void remove_nest(const unsigned int nestID);    // remove nests used in mass kill
-    double tlastregen = 0.0;    
+    double tlastregen = 0.0;
+    double last_evolution_time = 0.0;
+    double last_deadnest_time = 0.0;    
     std::priority_queue<track_time, std::vector<track_time>, decltype(cmptime)> event_queue; // Event queue
+    std::vector<Nest> deadNests;
     //LC dummy variables for double checks
-    int count1 = 0;
-    int count2 = 0;
-    int count3 = 0;
-    int count4 = 0;
-    int count5 = 0;
-    int count6 = 0;
-    int count7 = 0;
+    int cnt_sucrentry = 0;
+    int cnt_sucfood = 0;
+    int cnt_steal = 0;
+    int cnt_sucsteal = 0;
+    int cnt_sucforage = 0;
+    int cnt_rentry = 0;
+    int cnt_forage = 0;
 };
 
 
@@ -104,6 +111,31 @@ void Population::simulate(const std::vector<std::string>& param_names){
             event_queue.push(track_time(individual));
         }
     }
+
+    fs::path evolutionPath = fs::path("./output_sim/" + std::to_string(simulationID) + "_evolution.csv");
+    std::ofstream evolution_file(evolutionPath);
+
+    fs::path deadindPath = fs::path("./output_sim/" + std::to_string(simulationID) + "_deadIndividuals.csv");
+    std::ofstream di_file(deadindPath);
+    
+    for (auto i : param_names) {
+        evolution_file << i << ',';
+        di_file << i << ',';
+    }
+
+    evolution_file << "gtime,popstock,popsize,cuesimpson,cueshannon,cueman_avg,cueman_std,relatedness,neutral_avg,neutral_std,int_avg,int_std,slope_avg,slope_std,cueabun_avg,cueabun_std,steal_avg,steal_std,sucsteal_avg,sucsteal_std,for_avg,for_std,sucfor_avg,sucfor_std,rentry_avg,rentry_std,sucrentry_avg,sucrentry_std,sucfood_avg,sucfood_std,offprings_avg,offspring_std";
+
+    evolution_file << std::endl;
+    evolution_file.flush();
+
+    di_file << "gtime,tbirth,nest_id,mom_id,num_steal,num_sucsteal,num_forage,num_sucforage,num_actions,int,slope,offspring,neutral_gene";
+    // Add headers for cue values
+    for (int cue_index = 0; cue_index < p.iNumCues; ++cue_index) {
+        di_file << ",cue" << cue_index;
+    }
+
+    di_file << std::endl;
+    di_file.flush();
 
     while (gtime < max_gtime_evolution) {
 
@@ -146,24 +178,24 @@ void Population::simulate(const std::vector<std::string>& param_names){
                 // If outside colony, check whether foraging or steal
                 int if_target = target_nest(current);
                 // If foraging
-                count7++;               //LC
+                cnt_forage++;               //LC
                 if (current.bForage) {
                     PopStock -= 1.0;            // Reduce population stock size
                     current.bSuccesfulFood = true;
-                    count5++;           //LC
+                    cnt_sucforage++;           //LC
                 } else {
                     // If stealing
                     int target_nest_index = findIndexByNestId(if_target);
                     // Check if intrusion is successful
                     bool success = nests[target_nest_index].check_Intruder(p, current.IndiCues);
-                    count3++;       //LC
+                    cnt_steal++;       //LC
                     // if successful in stealing
                     if (success) {
                         nests[target_nest_index].NestStock -= 1.0;
                         update_storer();
                         current.bSuccesfulFood = true;
                         check_nests(if_target);
-                        count4++;   //LC
+                        cnt_sucsteal++;   //LC
                     }
                     current.bSuccesfulFood = false;
                 }
@@ -174,29 +206,30 @@ void Population::simulate(const std::vector<std::string>& param_names){
                 if (current.bSuccesfulFood) {
                     // Returning with food, resident check
                     bool greatEntry = nests[cnestindex].check_Resident(p, current);
-                    count2++; //LC
+                    cnt_sucfood++; //LC
                     if (greatEntry) {
                         nests[cnestindex].NestStock += 1.0;
                         update_storer();
-                        count1++;           // LC
+                        cnt_sucrentry++;           // LC
                     }
                 }
-                count6++;           //LC
+                cnt_rentry++;           //LC
                 // Success or No success, simply add back to colony
                 current.bIsGoing = true;
             }
             // std::cout << "Nest ID: " << oldrec.nest_id << ", Individual ID: " << oldrec.ind_id 
             // << ", t_birth: " << oldrec.t_birth << ", t_next: " << oldrec.t_next << ", Go: " << oldrec.bIsGoing << ", Steal: " << !oldrec.bForage  << std::endl;
-            // std::cout << count1 << "/" << count2 << "  Res|Int  " << count4 << "/" << count3;  //LC
-            // std::cout << "   For:" << count5 << "   Rer:" << count6 << "   Go:" << count7;
+            // std::cout << cnt_sucrentry << "/" << cnt_sucfood << "  Res|Int  " << cnt_sucsteal << "/" << cnt_steal;  //LC
+            // std::cout << "   For:" << cnt_sucforage << "   Rer:" << cnt_rentry << "   Go:" << cnt_forage;
             // std::cout << "   PopSt:" << PopStock << std::endl;
             event_queue.push(current);
             check_nests(cnestid);
         }
         // Last action time of population assigned to tlastregen
         tlastregen = gtime;
-        
     }
+    evolution_file.close();
+    di_file.close();
 }
 
 // Function to check nest ID for negative food
@@ -431,5 +464,65 @@ void Population::sorted_kill() {
         }
     }
 }
+
+void Population::printPopulationState(const std::vector< float >& param_values, std::ostream& csv_file) {
+    if (gtime - last_evolution_time < dOutputTime) {
+        return; // Skip removal if not enough time has passed
+    }
+    // evolution_file << "gtime,popstock,popsize,cuesimpson,cueshannon,cueman_avg,cueman_std,relatedness,neutral_avg,neutral_std,int_avg,int_std,slope_avg,slope_std,cueabun_avg,cueabun_std,steal_avg,steal_std,sucsteal_avg,sucsteal_std,for_avg,for_std,sucfor_avg,sucfor_std,rentry_avg,rentry_std,sucrentry_avg,sucrentry_std,sucfood_avg,sucfood_std,offprings_avg,offspring_std";
+
+    for (auto i : param_values) {
+      csv_file << i << ',';
+    }
+
+    csv_file << gtime << "," << PopStock << "," << nests.size() << ",";
+
+    std::vector<std::vector<double>> antProfiles;
+    std::vector<double> intercepts;
+    std::vector<double> slopes;
+    std::vector<double> cueabun;
+    std::vector<double> successsteal;
+    std::vector<double> steal;
+    std::vector<double> successforage;
+    std::vector<double> forage;
+    std::vector<double> rentry;
+    std::vector<double> sucrentry;
+    std::vector<double> sucfood;
+    std::vector<double> offsprings;
+    std::vector<double> neutral;
+
+    for (auto& nest: nests){
+        antProfiles.push_back(nest.NestMean);
+        intercepts.push_back(nest.TolIntercept);
+        slopes.push_back(nest.TolSlope);
+        cueabun.push_back(nest.TotalAbundance);
+        successsteal.push_back(cnt_sucsteal);
+        steal.push_back(cnt_steal);
+        successforage.push_back(cnt_sucforage);
+        forage.push_back(cnt_forage);
+        rentry.push_back(cnt_rentry);
+        sucrentry.push_back(cnt_sucrentry);
+        sucfood.push_back(cnt_sucfood);
+        offsprings.push_back(nest.num_offsprings);
+        neutral.push_back(nest.NestNeutralGene);
+    }
+    std::tuple<double, double> stat;
+
+    double simpdiv = calculateSimpsonDiversity(antProfiles);
+    double shandiv = calculateShannonDiversity(antProfiles);
+    stat = calculatePairwiseBrayCurtis(antProfiles);
+    csv_file << "," << simpdiv << "," << shandiv;
+    csv_file << "," << std::get<0>(stat) << "," << std::get<1>(stat);
+
+    // Calculate relatedness
+    // std::vector<double> 
+
+    // End the CSV line
+    csv_file << "\n";
+    csv_file.flush();
+
+    // Update the last removal time
+    last_evolution_time = gtime;
+}   
 
 #endif /* Population_hpp */

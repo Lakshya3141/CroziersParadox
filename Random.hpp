@@ -107,6 +107,100 @@ int chooseProbableIndex(const std::vector<double>& probabilities) {
     return std::distance(cumulative.begin(), it);
 }
 
+// Function to calculate Shannon's diversity index
+double calculateShannonDiversity(const std::vector<std::vector<double>>& antProfiles) {
+    int numAnts = antProfiles.size();
+    if (numAnts == 0) return 0.0;
+    
+    int numCues = antProfiles[0].size();
+    std::vector<double> totalConcentrations(numCues, 0.0);
+    
+    // Sum up concentrations for each cue across all ants
+    for (const auto& profile : antProfiles) {
+        for (int j = 0; j < numCues; ++j) {
+            totalConcentrations[j] += profile[j];
+        }
+    }
+    
+    // Calculate the total sum of all cues
+    double totalSum = 0.0;
+    for (double concentration : totalConcentrations) {
+        totalSum += concentration;
+    }
+    
+    // Calculate the proportions and then the diversity index
+    double diversityIndex = 0.0;
+    for (double concentration : totalConcentrations) {
+        if (concentration > 0) {
+            double proportion = concentration / totalSum;
+            diversityIndex -= proportion * std::log(proportion);
+        }
+    }
+    
+    return diversityIndex;
+}
+
+// Function to calculate Simpson's diversity index
+double calculateSimpsonDiversity(const std::vector<std::vector<double>>& antProfiles) {
+    int numAnts = antProfiles.size();
+    if (numAnts == 0) return 0.0;
+
+    int numCues = antProfiles[0].size();
+    std::vector<double> totalConcentrations(numCues, 0.0);
+
+    // Sum up concentrations for each cue across all ants
+    for (const auto& profile : antProfiles) {
+        for (int j = 0; j < numCues; ++j) {
+            totalConcentrations[j] += profile[j];
+        }
+    }
+
+    // Calculate the total sum of all cues
+    double totalSum = 0.0;
+    for (double concentration : totalConcentrations) {
+        totalSum += concentration;
+    }
+
+    // Calculate the proportions and then the diversity index
+    double sumProportionsSquared = 0.0;
+    for (double concentration : totalConcentrations) {
+        if (concentration > 0) {
+            double proportion = concentration / totalSum;
+            sumProportionsSquared += proportion * proportion;
+        }
+    }
+
+    double diversityIndex = 1.0 - sumProportionsSquared;
+    return diversityIndex;
+}
+
+// Function to calculate Bray-Curtis distance between two ant profiles
+double calculateBrayCurtisDistance(const std::vector<double>& profile1, const std::vector<double>& profile2) {
+    double sumDifferences = 0.0;
+    double sumTotals = 0.0;
+
+    for (size_t i = 0; i < profile1.size(); ++i) {
+        sumDifferences += std::min(profile1[i],profile2[i]);
+        sumTotals += (profile1[i] + profile2[i]);
+    }
+
+    return 1 - 2*sumDifferences/sumTotals;
+}
+
+// Function to calculate pairwise Bray-Curtis distances and return the average and std deviation
+std::tuple<double, double> calculatePairwiseBrayCurtis(const std::vector<std::vector<double>>& antProfiles) {
+    std::vector<double> distances;
+    
+    for (size_t i = 0; i < antProfiles.size(); ++i) {
+        for (size_t j = i + 1; j < antProfiles.size(); ++j) {
+            double distance = calculateBrayCurtisDistance(antProfiles[i], antProfiles[j]);
+            distances.push_back(distance);
+        }
+    }
+    
+    return mean_std(distances);
+}
+
 // dummy print function for debugging
 void print(){
     std::cout << "DUMMY" << std::endl;
