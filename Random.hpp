@@ -107,6 +107,83 @@ int chooseProbableIndex(const std::vector<double>& probabilities) {
     return std::distance(cumulative.begin(), it);
 }
 
+
+// dummy print function for debugging
+void print(){
+    std::cout << "DUMMY" << std::endl;
+}
+
+// dummy print function for debugging
+void print_spec(const std::string& str){
+    std::cout << str << std::endl;
+}
+
+// dummy print function for debugging
+void print_spec(const char* str) {
+    std::cout << str << std::endl;
+}
+
+// dummy print vector function for debugging
+template <typename T>
+void printVector(const std::vector<T>& vec) {
+    std::cout << "[ ";
+    for (const auto& element : vec) {
+        std::cout << element << " ";
+    }
+    std::cout << "]\n";
+}
+
+// LC: Some of the functions may be a bit repetitive, cleaning throughout might be an issue
+// I dont think it has any significant effect
+
+// Function template to calculate the average of a vector of any numeric type
+template <typename T>
+T calculateAverage(const std::vector<T>& values) {
+    if (values.empty()) {
+        // Handle the case where the vector is empty to avoid division by zero
+        std::cerr << "Error: Cannot calculate average of an empty vector." << std::endl;
+        return T();
+    }
+    // Calculate the sum of all elements in the vector
+    T sum = T();
+    for (const auto& value : values) {
+        sum += static_cast<double>(value); // Typecast value to double
+    }
+    // Calculate the average
+    return sum / static_cast<double>(values.size());
+}
+
+// Function template to calculate the mean and standard deviation of a vector of any numeric type
+template <typename T>
+std::tuple<double, double> mean_std(const std::vector<T>& data) {
+    double mean = calculateAverage(data);
+    double std_dev = 0.0;
+    for (const auto& value : data) {
+        std_dev += std::pow(static_cast<double>(value) - mean, 2);
+    }
+    std_dev = std::sqrt(std_dev / static_cast<double>(data.size()));
+    return std::make_tuple(mean, std_dev);
+}
+
+// stats functions
+double mean(const std::vector<double>& x) {
+    return std::accumulate(begin(x),end(x),0.0)/static_cast<double>(x.size());
+}
+
+double standard_deviation(const std::vector<double>& x) {
+    double ss{std::inner_product(begin(x),end(x),begin(x),0.0)};
+    double m{mean(x)};
+    return sqrt(ss/static_cast<double>(x.size())-m*m);
+}
+
+double covariance(const std::vector<double>& x, const std::vector<double>& y) {
+    double ss{std::inner_product(begin(x),end(x),begin(y),0.0)};
+    double mx{mean(x)};
+    double my{mean(y)};
+    return ss/static_cast<double>(x.size())-mx*my;
+}
+
+
 // Function to calculate Shannon's diversity index
 double calculateShannonDiversity(const std::vector<std::vector<double>>& antProfiles) {
     int numAnts = antProfiles.size();
@@ -199,81 +276,6 @@ std::tuple<double, double> calculatePairwiseBrayCurtis(const std::vector<std::ve
     }
     
     return mean_std(distances);
-}
-
-// dummy print function for debugging
-void print(){
-    std::cout << "DUMMY" << std::endl;
-}
-
-// dummy print function for debugging
-void print_spec(const std::string& str){
-    std::cout << str << std::endl;
-}
-
-// dummy print function for debugging
-void print_spec(const char* str) {
-    std::cout << str << std::endl;
-}
-
-// dummy print vector function for debugging
-template <typename T>
-void printVector(const std::vector<T>& vec) {
-    std::cout << "[ ";
-    for (const auto& element : vec) {
-        std::cout << element << " ";
-    }
-    std::cout << "]\n";
-}
-
-// LC: Some of the functions may be a bit repetitive, cleaning throughout might be an issue
-// I dont think it has any significant effect
-
-// Function template to calculate the average of a vector of any numeric type
-template <typename T>
-T calculateAverage(const std::vector<T>& values) {
-    if (values.empty()) {
-        // Handle the case where the vector is empty to avoid division by zero
-        std::cerr << "Error: Cannot calculate average of an empty vector." << std::endl;
-        return T();
-    }
-    // Calculate the sum of all elements in the vector
-    T sum = T();
-    for (const auto& value : values) {
-        sum += static_cast<double>(value); // Typecast value to double
-    }
-    // Calculate the average
-    return sum / static_cast<double>(values.size());
-}
-
-// Function template to calculate the mean and standard deviation of a vector of any numeric type
-template <typename T>
-std::tuple<double, double> mean_std(const std::vector<T>& data) {
-    double mean = calculateAverage(data);
-    double std_dev = 0.0;
-    for (const auto& value : data) {
-        std_dev += std::pow(static_cast<double>(value) - mean, 2);
-    }
-    std_dev = std::sqrt(std_dev / static_cast<double>(data.size()));
-    return std::make_tuple(mean, std_dev);
-}
-
-// stats functions
-double mean(const std::vector<double>& x) {
-    return std::accumulate(begin(x),end(x),0.0)/static_cast<double>(x.size());
-}
-
-double standard_deviation(const std::vector<double>& x) {
-    double ss{std::inner_product(begin(x),end(x),begin(x),0.0)};
-    double m{mean(x)};
-    return sqrt(ss/static_cast<double>(x.size())-m*m);
-}
-
-double covariance(const std::vector<double>& x, const std::vector<double>& y) {
-    double ss{std::inner_product(begin(x),end(x),begin(y),0.0)};
-    double mx{mean(x)};
-    double my{mean(y)};
-    return ss/static_cast<double>(x.size())-mx*my;
 }
 
 #endif /* Random_hpp */

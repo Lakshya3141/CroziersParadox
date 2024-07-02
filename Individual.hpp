@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <stdexcept>
 #include "Parameters.hpp"
-#include "Random.hpp"
 
 // The class below defines an individual and the functions corresponding to it
 class Individual {
@@ -61,10 +60,10 @@ void Individual::mutate (const params& p) {
     for (int i = 0; i < p.iNumCues; i++) {
         // Multiplied by a fraction less than 1 such that the individuals are closer
         // than colonies are
-        IndiCues[i] += normal(p.dMutBias, p.dMutationStrength*p.dFracIndMutStrength);
+        IndiCues[i] += normal(p.dMutBias, p.dMutationStrengthCues*p.dFracIndMutStrength);
         if (IndiCues[i] < 0) IndiCues[i] = 0.0;
     }
-    NeutralGene += normal(p.dMutBias, p.dMutationStrength*p.dFracIndMutStrength);
+    NeutralGene += normal(p.dMutBias, p.dMutationStrengthCues*p.dFracIndMutStrength);
 }
 
 // Function to calculate Bray Curtis distance for the "gestalt" recognition mode

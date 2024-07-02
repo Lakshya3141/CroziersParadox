@@ -60,7 +60,7 @@ Nest::Nest(const unsigned int nid, const params& p) : nest_id(nid) {
     calculate_abundance(p);                         // Calculate abundance
     NestStock = p.dInitNestStock + uni_real()/10;   // Create initial nest stock
     // Assign values to neutral, intercept and slope genes
-    NestNeutralGene = 0.0 + normal(p.dMutBias, p.dMutationStrength);
+    NestNeutralGene = 0.0 + normal(p.dMutBias, p.dMutationStrengthCues);
     TolIntercept = normal(dInitIntercept, p.dMutationStrength);
     TolSlope = normal(dInitSlope, p.dMutationStrength);
 
@@ -130,10 +130,10 @@ size_t Nest::findIndexById(const int id) {
 // Also makes sure the cues dont reach negative values
 void Nest::mutate(const params& p) {
     for (int i = 0; i < p.iNumCues; i++) {
-        NestMean[i] += normal(p.dMutBias, p.dMutationStrength);
+        NestMean[i] += normal(p.dMutBias, p.dMutationStrengthCues);
         if (NestMean[i] < 0.0) NestMean[i] = 0.0;
     }
-    NestNeutralGene += normal(p.dMutBias, p.dMutationStrength);
+    NestNeutralGene += normal(p.dMutBias, p.dMutationStrengthCues);
 }
 
 // Target nest function to check if intruder can enter or not

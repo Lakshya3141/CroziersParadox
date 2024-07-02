@@ -10,6 +10,9 @@ int main(int argc, char* argv[]) {
     std::cout << "Global Parameters:" << std::endl;
     std::cout << "max_gtime_evolution = " << max_gtime_evolution << std::endl;
     std::cout << "Pop removal time = " << dRemovalTime << std::endl;
+    std::cout << "Pop recording time = " << dOutputTime << std::endl;
+    std::cout << "Fraction dead nests rec =" << dFracDeadNest << std::endl;
+    std::cout << "End Simulation for inds =" << dFracLastIndRecord << std::endl;
     std::cout << "[dInitIntercept, dInitSlope] = [" << dInitIntercept << " , " << dInitSlope << "]" << std::endl;
     std::cout << "Coevolving = " << bIsCoevolve << std::endl;
     std::cout << "Reading from config file: " << file_name << "\n";
@@ -22,18 +25,19 @@ int main(int argc, char* argv[]) {
     // create output folder if doesnt exist
     std::string folderName = "output_sim";
     if (!fs::exists(folderName)) {
-        if (fs::create_directory(folderName)) {
-            std::cout << "Folder '" << folderName << "' created successfully.\n";
-        } else {
-            std::cerr << "Error: Failed to create folder '" << folderName << "'.\n";
-            return 1; // Return error code
-        }
+      if (fs::create_directory(folderName)) {
+        std::cout << "Folder '" << folderName << "' created successfully.\n";
+      } else {
+        std::cerr << "Error: Failed to create folder '" << folderName << "'.\n";
+        return 1; // Return error code
+      }
     } else {
-        std::cout << "Folder '" << folderName << "' already exists.\n";
+      std::cout << "Folder '" << folderName << "' already exists.\n";
     }
 
     params sim_par_in(file_name);
     sim_par_in.print_string_vals();
+    exportParametersToCSV(sim_par_in);
 
     auto start = std::chrono::high_resolution_clock::now();
     

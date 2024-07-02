@@ -16,13 +16,17 @@
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
+#include <filesystem>
+#include "Random.hpp"
+
+namespace fs = std::filesystem;
 
 // Variables needed at compile time OR variables not explored in variation
 double gtime = 0.0;                            // Global time
 double max_gtime_evolution = 1000.0;          // Time for evolution phase of simulations
 double dRemovalTime = 200.0;                  // Removal time -> numTicks after which lowest stock colonies die
 double dReproductionTime = dRemovalTime;       // Reproduction time -> numTicks after mass reproduction occurs
-double dOutputTime = 200.0;
+double dOutputTime = 20.1;
 double dFracDeadNest = 0.1;
 double dFracLastIndRecord = 0.05;                  // Records individual movement in last this fraction of simulation
 
@@ -40,21 +44,22 @@ struct params {
     params() {};
     
     params(const std::string& file_name) {
-        read_parameters_from_ini(file_name);
+      read_parameters_from_ini(file_name);
     }
 
     // Below are the default values for parameters to be read from config file
     double dFracKilled = 0.4;                    // Mortality rate after dRemovalTime
     double dMetabolicCost = 40.0;                // Metabolic cost for cue production
-    double dMutationStrength = 1.0;             // Mutation strength
-    double dFracIndMutStrength = 0.1;            // multiplied by mutation strength for individuals
+    double dMutationStrength = 1.0;             // Mutation strength of tolerance and neutral genes
+    double dMutationStrengthCues = 1.0;           // Mutation strength of cues
+    double dFracIndMutStrength = 0.001;            // multiplied by mutation strength for individuals
     double dMutBias = 0.0;                       // Mutation bias
     double iNumWorkers = 5;                        // Number of workers in each colony
     double iNumCues = 5;                           // Number of Cues
     double iNumColonies = 5;                        // Number of colonies
     double dInitNestStock = 25.0;                          // Initial stock of colony at start/after removal
     double dInitFoodStock = 300.0;                     // Intial food stock available for foraging
-    double dExpParam = 0.1;                       // Exponential parameter, 1/dExpParam is from which initial cues are sampled
+    double dExpParam = 0.01;                       // Exponential parameter, 1/dExpParam is from which initial cues are sampled
     double dMeanActionTime = 1.0;               // Average time of action for gillespe algorithm
     double dRatePopStock = 5.0; //150.0;               //  Rate of regeneration of population stock per unit time
     double dRateNestStock = 0.0/24.0;               // Rate of regeneration of nest stock per unit time
@@ -81,6 +86,7 @@ struct params {
         dFracKilled              = from_config.getValueOfKey<double>("dFracKilled");
         dMetabolicCost           = from_config.getValueOfKey<double>("dMetabolicCost");
         dMutationStrength        = from_config.getValueOfKey<double>("dMutationStrength");
+        dMutationStrengthCues    = from_config.getValueOfKey<double>("dMutationStrengthCues");
         dFracIndMutStrength      = from_config.getValueOfKey<double>("dFracIndMutStrength");
         dMutBias                 = from_config.getValueOfKey<double>("dMutBias");
         dInitNestStock           = from_config.getValueOfKey<double>("dInitNestStock");
@@ -126,6 +132,7 @@ struct params {
         if (s == "dFracKilled")               return dFracKilled;
         if (s == "dMetabolicCost")            return dMetabolicCost;
         if (s == "dMutationStrength")         return dMutationStrength;
+        if (s == "dMutationStrengthCues")     return dMutationStrengthCues;
         if (s == "dFracIndMutStrength")       return dFracIndMutStrength;
         if (s == "dMutBias")                  return dMutBias;
         if (s == "iNumWorkers")               return iNumWorkers;
@@ -162,5 +169,51 @@ struct params {
         std::cout << "Food Reset : " << foodresetchoice[iFoodResetChoice] << std::endl;
     }
 };
+
+// Function to export parameters to a CSV file
+void exportParametersToCSV(const params& p) {
+    // Open the file in write mode
+    fs::path parameterPath = fs::path("./output_sim/" + std::to_string(simulationID) + "_parameter.csv");
+    std::ofstream file(parameterPath);
+
+    // Write the header
+    file << "Parameter,Value\n";
+
+    // Write the global parameters
+    file << "max_gtime_evolution," << max_gtime_evolution << "\n";
+    file << "dRemovalTime," << dRemovalTime << "\n";
+    file << "dReproductionTime," << dReproductionTime << "\n";
+    file << "dOutputTime," << dOutputTime << "\n";
+    file << "dFracDeadNest," << dFracDeadNest << "\n";
+    file << "dFracLastIndRecord," << dFracLastIndRecord << "\n";
+    file << "dInitIntercept," << dInitIntercept << "\n";
+    file << "dInitSlope," << dInitSlope << "\n";
+    file << "bIsCoevolve," << bIsCoevolve << "\n";
+
+    // Write the parameters from the params struct
+    file << "dFracKilled," << p.dFracKilled << "\n";
+    file << "dMetabolicCost," << p.dMetabolicCost << "\n";
+    file << "dMutationStrength," << p.dMutationStrength << "\n";
+    file << "dMutationStrengthCues," << p.dMutationStrengthCues << "\n";
+    file << "dFracIndMutStrength," << p.dFracIndMutStrength << "\n";
+    file << "dMutBias," << p.dMutBias << "\n";
+    file << "iNumWorkers," << p.iNumWorkers << "\n";
+    file << "iNumCues," << p.iNumCues << "\n";
+    file << "iNumColonies," << p.iNumColonies << "\n";
+    file << "dInitNestStock," << p.dInitNestStock << "\n";
+    file << "dInitFoodStock," << p.dInitFoodStock << "\n";
+    file << "dExpParam," << p.dExpParam << "\n";
+    file << "dMeanActionTime," << p.dMeanActionTime << "\n";
+    file << "dRatePopStock," << p.dRatePopStock << "\n";
+    file << "dRateNestStock," << p.dRateNestStock << "\n";
+    file << "iModelChoice," << p.iModelChoice << "\n";
+    file << "iTolChoice," << p.iTolChoice << "\n";
+    file << "iKillChoice," << p.iKillChoice << "\n";
+    file << "iRepChoice," << p.iRepChoice << "\n";
+    file << "iFoodResetChoice," << p.iFoodResetChoice << "\n";
+
+    // Close the file
+    file.close();
+}
 
 #endif /* Parameters_hpp */
