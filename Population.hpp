@@ -167,7 +167,7 @@ void Population::simulate(const std::vector<std::string>& param_names){
     dn_file.flush();
 
     while (gtime < max_gtime_evolution) {
-
+        std::cout << PopStock << std::endl;
         if (event_queue.empty()) {
             // No more events to process
             std::cout << "ERROR: event_queue empty" << std::endl;
@@ -434,7 +434,7 @@ void Population::mass_reproduce() {
         }
         update_storer();
     }
-
+    last_MassRep_time = gtime;
 }
 
 // Mass kill function. Depending on value of iKillChoice

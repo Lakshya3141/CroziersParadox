@@ -26,8 +26,8 @@ double gtime = 0.0;                            // Global time
 double max_gtime_evolution = 1000.0;          // Time for evolution phase of simulations
 double dRemovalTime = 200.0;                  // Removal time -> numTicks after which lowest stock colonies die
 double dReproductionTime = dRemovalTime;       // Reproduction time -> numTicks after mass reproduction occurs
-double dOutputTime = 20.1;
-double dFracDeadNest = 1.0;
+double dOutputTime = 50.1;
+double dFracDeadNest = 0.3;
 double dFracLastIndRecord = 0.05;                  // Records individual movement in last this fraction of simulation
 
 const double dInitIntercept = 0.0;          // Initial value of intercept for linear / logistic comparison
