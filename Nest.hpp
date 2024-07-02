@@ -33,8 +33,17 @@ public:
     double TolSlope;                            // Slope for linear/logistic threshold curve
     double tbirth = gtime;                      // Time of birth
     int num_offsprings = 0.0;                   // Number of offsprings
-    int num_actions = 0.0;                      // Number of actions
+    int nactions = 0.0;                      // Number of actions
     double tlast = gtime;                         // Last time of action
+    double nsteal = 0.0;
+    double nsucsteal = 0.0;
+    double nforage = 0.0;
+    double nsucforage = 0.0;
+    double nrentry = 0.0;
+    double nsucrentry = 0.0;
+    double nsucfood = 0.0;
+    double nraids = 0.0;
+    double nsucraids = 0.0;
 
     // Nest functions
     void metabolic_cost(const params& p);       // Subtracts metabolic cost of 1 action

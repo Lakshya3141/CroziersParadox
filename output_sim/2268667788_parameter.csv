@@ -3,7 +3,7 @@ max_gtime_evolution,1000
 dRemovalTime,200
 dReproductionTime,200
 dOutputTime,20.1
-dFracDeadNest,0.1
+dFracDeadNest,1
 dFracLastIndRecord,0.05
 dInitIntercept,0
 dInitSlope,1
