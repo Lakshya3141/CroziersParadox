@@ -4,7 +4,7 @@
 #SBATCH --job-name=FirstOutput
 #SBATCH --output=individual.out
 #SBATCH --time=07:00:00
-#SBATCH --mem=200GB
+#SBATCH --mem=2GB
 #SBATCH --partition=regular
 
 module load  R/4.3.2-gfbf-2023a

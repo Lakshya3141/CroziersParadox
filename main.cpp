@@ -65,5 +65,5 @@ int main(int argc, char* argv[]) {
   }
   std::cerr << "bailing out.\n";
 
-  return -1; 
+  return -1;
 }

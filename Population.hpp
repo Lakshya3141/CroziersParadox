@@ -86,7 +86,7 @@ private:
     double cnt_sucsteal = 0;
     double cnt_sucforage = 0;
     double cnt_rentry = 0;
-    double cnt_forage = 0;
+    double cnt_leave = 0;
     std::vector<double> calculateMeanProfile() const;
 };
 
@@ -152,7 +152,7 @@ void Population::simulate(const std::vector<std::string>& param_names){
         dn_file << i << ',';
     }
 
-    evolution_file << "gtime,popstock,popsize,bcnest_avg,bcnest_std,bcind_avg,bcind_std,nshan_avg,nshan_std,nsimp_avg,nsimp_std,ishan_avg,ishan_std,isimp_avg,isimp_std,relatedness,neutral_avg,neutral_std,int_avg,int_std,slope_avg,slope_std,cueabun_avg,cueabun_std,steal,sucsteal,for,sucfor,rentry,sucrentr,sucfood,offprings_avg,offspring_std,offsimp,offshan,timealive_avg,timealive_std,maxtime_alive,mintime_alive";
+    evolution_file << "gtime,popstock,popsize,bcnest_avg,bcnest_std,bcind_avg,bcind_std,nshan_avg,nshan_std,nsimp_avg,nsimp_std,ishan_avg,ishan_std,isimp_avg,isimp_std,relatedness,neutral_avg,neutral_std,int_avg,int_std,slope_avg,slope_std,cueabun_avg,cueabun_std,steal,sucsteal,leave,sucfor,rentry,sucrentr,sucfood,offprings_avg,offspring_std,offsimp,offshan,timealive_avg,timealive_std,maxtime_alive,mintime_alive";
 
     evolution_file << std::endl;
     evolution_file.flush();
@@ -167,7 +167,7 @@ void Population::simulate(const std::vector<std::string>& param_names){
     dn_file.flush();
 
     while (gtime < max_gtime_evolution) {
-        std::cout << PopStock << std::endl;
+        // std::cout << PopStock << std::endl;
         if (event_queue.empty()) {
             // No more events to process
             std::cout << "ERROR: event_queue empty" << std::endl;
@@ -209,9 +209,8 @@ void Population::simulate(const std::vector<std::string>& param_names){
                 // If outside colony, check whether foraging or steal
                 int if_target = target_nest(current);
                 // If foraging
-                cnt_forage++;               //LC
                 nests[cnestindex].nforage++;
-                
+                cnt_leave++;               //LC
                 if (current.bForage) {
                     PopStock -= 1.0;            // Reduce population stock size
                     current.bSuccesfulFood = true;
@@ -286,10 +285,14 @@ void Population::check_nests(const unsigned int nestId) {
 
 // Function to regenerate food linearly
 void Population::regenerate_food(){
-    if (PopStock < 0.0) {
-        PopStock = 0.0;
+    if(p.iConstStockChoice == 1) {
+        PopStock = p.dConstantPopStock;
+    } else if (p.iConstStockChoice == 0) {
+        if (PopStock < 0.0) {
+            PopStock = 0.0;
+        }
+        PopStock += (gtime - tlastregen)*p.dRatePopStock;
     }
-    PopStock += (gtime - tlastregen)*p.dRatePopStock;
 }
 
 // Function to find foraging or which nest to steal from
@@ -298,8 +301,9 @@ int Population::target_nest(Individual& indi){
     double num = static_cast<double>(nests.size() - 1);
     double denom = static_cast<double>(PopStock + nests.size() - 1);
     bool decision = bernoulli(num/denom);
+    // std::cout << num/denom << std::endl;                 // LC remove
     // Take bernoulli of fraction
-    if (!decision || PopStock < 1.0) {
+    if (!decision) {
         indi.bForage = true;
         return -1;
     } else {
@@ -613,7 +617,7 @@ void Population::printPopulationState(const std::vector< float >& param_values, 
 
     csv_file << "," << cnt_steal;
     csv_file << "," << cnt_sucsteal;
-    csv_file << "," << cnt_forage;
+    csv_file << "," << cnt_leave;
     csv_file << "," << cnt_sucforage;
     csv_file << "," << cnt_rentry;
     csv_file << "," << cnt_sucrentry;

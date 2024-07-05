@@ -16,13 +16,15 @@ create_config <- function(config_file_name = "config.ini",
                           dInitFoodStock = 300.0,
                           dExpParam = 0.1,
                           dMeanActionTime = 1.0,
-                          dRatePopStock = 5.0,
+                          dRatePopStock = 25.0,
+                          dConstantPopStock = 50.0,
                           dRateNestStock = 0.0/24.0,
                           iModelChoice = 0.0,
                           iTolChoice = 0.0,
                           iKillChoice = 1,
                           iRepChoice = 0,
                           iFoodResetChoice = 1,
+                          iConstStockChoice = 1,
                           params_to_record = "dExpParam,dMutationStrength,dFracKilled,dMetabolicCost") {
   
   # Create a list to hold the parameters
@@ -43,12 +45,14 @@ create_config <- function(config_file_name = "config.ini",
                              "dExpParam" = dExpParam,
                              "dMeanActionTime" = dMeanActionTime,
                              "dRatePopStock" = dRatePopStock,
+                             "dConstantPopStock" = dConstantPopStock,
                              "dRateNestStock" = dRateNestStock,
                              "iModelChoice" = iModelChoice,
                              "iTolChoice" = iTolChoice,
                              "iKillChoice" = iKillChoice,
                              "iRepChoice" = iRepChoice,
                              "iFoodResetChoice" = iFoodResetChoice,
+                             "iConstStockChoice" = iConstStockChoice,                             
                              "params_to_record" = params_to_record)
   
   # Write the list to an INI file
