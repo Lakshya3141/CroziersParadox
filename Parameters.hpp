@@ -24,8 +24,9 @@ namespace fs = std::filesystem;
 // Variables needed at compile time OR variables not explored in variation
 double gtime = 0.0;                            // Global time
 double dRemovalTime = 200.0;                  // Removal time -> numTicks after which lowest stock colonies die
-double max_gtime_evolution = dRemovalTime*100.0;          // Time for evolution phase of simulations
+double max_gtime_evolution = dRemovalTime*3.0;          // Time for evolution phase of simulations
 double dReproductionTime = dRemovalTime;       // Reproduction time -> numTicks after mass reproduction occurs
+double dTickTime = 2.0;                       // Time after which population stock is reset IF iConstPopStock = 2
 double dOutputTime = 10.1;
 double dFracDeadNest = 1.0;
 double dFracLastIndRecord = 0.05;                  // Records individual movement in last this fraction of simulation
@@ -73,7 +74,7 @@ struct params {
   double iRepChoice = 4;                         // 0 for mass reproduction, 1 for individual reproduction, 2 for both
   double iFoodResetChoice = 0;                   // Only relevant in mass reproduction
                                               // 1 for yes reset, 0 for no reset
-  double iConstStockChoice = 0;               // 1 for constant pop stock, 0 for linearly increasing
+  double iConstStockChoice = 0;               // 0 linearly increasing | 1 for const pop stock | 2 for tick system 
 
   std::string temp_params_to_record;          // Not relevant now
   std::vector < std::string > param_names_to_record;  // Not relevant now
@@ -166,8 +167,7 @@ struct params {
     std::vector<std::string> killchoice = {"random", "sorted", "nodeath"};
     std::vector<std::string> repchoice = {"mass", "individual", "both", "control"};
     std::vector<std::string> foodresetchoice = {"no", "yes"};
-    std::vector<std::string> constPopStockchoice = {"no", "yes"};
-
+    std::vector<std::string> constPopStockchoice = {"linearly increasing", "constant population stock", "tick based reset"};
 
     std::cout << "Model : " << modelchoice[iModelChoice] << std::endl;
     std::cout << "Tolerance : " << tolchoice[iTolChoice] << std::endl;
@@ -177,53 +177,22 @@ struct params {
     std::cout << "Const Pop Stock : " << constPopStockchoice[iConstStockChoice] << std::endl;
   }
 };
-
 // Function to export parameters to a CSV file
 void exportParametersToCSV(const params& p) {
-  // Open the file in write mode
-  fs::path parameterPath = fs::path("./output_sim/" + std::to_string(simulationID) + "_parameter.csv");
-  std::ofstream file(parameterPath);
+    // Open the file in write mode
+    fs::path parameterPath = fs::path("./output_sim/" + std::to_string(simulationID) + "_parameter.csv");
+    std::ofstream file(parameterPath);
 
-  // Write the header
-  file << "Parameter,Value\n";
+    // Write the header
+    file << "max_gtime_evolution,dRemovalTime,dReproductionTime,dTickTime,dOutputTime,dFracDeadNest,dFracLastIndRecord,dInitIntercept,dInitSlope,bIsCoevolve,";
+    file << "dFracKilled,dMetabolicCost,dMutationStrength,dMutationStrengthCues,dFracIndMutStrength,dMutBias,iNumWorkers,iNumCues,iNumColonies,dInitNestStock,dInitFoodStock,dExpParam,dMeanActionTime,dRatePopStock,dConstantPopStock,dRateNestStock,iModelChoice,iTolChoice,iKillChoice,iRepChoice,iFoodResetChoice,iConstStockChoice\n";
 
-  // Write the global parameters
-  file << "max_gtime_evolution," << max_gtime_evolution << "\n";
-  file << "dRemovalTime," << dRemovalTime << "\n";
-  file << "dReproductionTime," << dReproductionTime << "\n";
-  file << "dOutputTime," << dOutputTime << "\n";
-  file << "dFracDeadNest," << dFracDeadNest << "\n";
-  file << "dFracLastIndRecord," << dFracLastIndRecord << "\n";
-  file << "dInitIntercept," << dInitIntercept << "\n";
-  file << "dInitSlope," << dInitSlope << "\n";
-  file << "bIsCoevolve," << bIsCoevolve << "\n";
+    // Write the values
+    file << max_gtime_evolution << "," << dRemovalTime << "," << dReproductionTime << "," << dTickTime << "," << dOutputTime << "," << dFracDeadNest << "," << dFracLastIndRecord << "," << dInitIntercept << "," << dInitSlope << "," << bIsCoevolve << ",";
+    file << p.dFracKilled << "," << p.dMetabolicCost << "," << p.dMutationStrength << "," << p.dMutationStrengthCues << "," << p.dFracIndMutStrength << "," << p.dMutBias << "," << p.iNumWorkers << "," << p.iNumCues << "," << p.iNumColonies << "," << p.dInitNestStock << "," << p.dInitFoodStock << "," << p.dExpParam << "," << p.dMeanActionTime << "," << p.dRatePopStock << "," << p.dConstantPopStock << "," << p.dRateNestStock << "," << p.iModelChoice << "," << p.iTolChoice << "," << p.iKillChoice << "," << p.iRepChoice << "," << p.iFoodResetChoice << "," << p.iConstStockChoice << "\n";
 
-  // Write the parameters from the params struct
-  file << "dFracKilled," << p.dFracKilled << "\n";
-  file << "dMetabolicCost," << p.dMetabolicCost << "\n";
-  file << "dMutationStrength," << p.dMutationStrength << "\n";
-  file << "dMutationStrengthCues," << p.dMutationStrengthCues << "\n";
-  file << "dFracIndMutStrength," << p.dFracIndMutStrength << "\n";
-  file << "dMutBias," << p.dMutBias << "\n";
-  file << "iNumWorkers," << p.iNumWorkers << "\n";
-  file << "iNumCues," << p.iNumCues << "\n";
-  file << "iNumColonies," << p.iNumColonies << "\n";
-  file << "dInitNestStock," << p.dInitNestStock << "\n";
-  file << "dInitFoodStock," << p.dInitFoodStock << "\n";
-  file << "dExpParam," << p.dExpParam << "\n";
-  file << "dMeanActionTime," << p.dMeanActionTime << "\n";
-  file << "dRatePopStock," << p.dRatePopStock << "\n";
-  file << "dConstantPopStock," << p.dConstantPopStock << "\n";
-  file << "dRateNestStock," << p.dRateNestStock << "\n";
-  file << "iModelChoice," << p.iModelChoice << "\n";
-  file << "iTolChoice," << p.iTolChoice << "\n";
-  file << "iKillChoice," << p.iKillChoice << "\n";
-  file << "iRepChoice," << p.iRepChoice << "\n";
-  file << "iFoodResetChoice," << p.iFoodResetChoice << "\n";
-  file << "iConstStockChoice," << p.iConstStockChoice << "\n";
-
-  // Close the file
-  file.close();
+    // Close the file
+    file.close();
 }
 
 #endif /* Parameters_hpp */

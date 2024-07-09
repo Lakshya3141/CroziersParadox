@@ -10,6 +10,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Global Parameters:" << std::endl;
     std::cout << "max_gtime_evolution = " << max_gtime_evolution << std::endl;
     std::cout << "Pop removal time = " << dRemovalTime << std::endl;
+    std::cout << "Food restock time = " << dTickTime << std::endl;
     std::cout << "Pop recording time = " << dOutputTime << std::endl;
     std::cout << "Fraction dead nests rec =" << dFracDeadNest << std::endl;
     std::cout << "End Simulation for inds =" << dFracLastIndRecord << std::endl;

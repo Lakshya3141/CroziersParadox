@@ -17,6 +17,7 @@
 #include <sstream> // For std::ostringstream
 #include <numeric>
 #include <cmath>
+#include <tuple>
 
 namespace fs = std::filesystem;
 
@@ -66,11 +67,13 @@ public:
 
     // Output functions
     void printPopulationState(const std::vector< float >& param_values, std::ostream& csv_file);
+    void printLastPopulationState(const std::vector< float >& param_values, std::ostream& csv_file);
     void printDeadNestsData(const std::vector< float >& param_values, std::ostream& csv_file);
 
 private:
     double last_MassKill_time = 0.0;                // Time since last purge of colonies
     double last_MassRep_time = 0.0;                 // Time since last mass reproduction event
+    double last_TickUpdate_time = 0.0;              // Time since last pop stock was updated IF tick based food
     void random_kill();                             // in mass kill, doesnt sort
     void sorted_kill();                             // in mass kill, sorts and kills
     void remove_nest(const unsigned int nestID);    // remove nests used in mass kill
@@ -88,6 +91,22 @@ private:
     double cnt_rentry = 0;
     double cnt_leave = 0;
     std::vector<double> calculateMeanProfile() const;
+    std::tuple<double, double, double> gen_stuff;
+    std::tuple<double, double> stat_bc_nest;
+    std::tuple<double, double> stat_bc_ant;
+    std::tuple<double, double> stat_shannons;
+    std::tuple<double, double> stat_simpsons;
+    std::tuple<double, double> stat_shannonsant;
+    std::tuple<double, double> stat_simpsonsant;
+    std::tuple<double, double> stat_neutral;
+    std::tuple<double, double> stat_intercepts;
+    std::tuple<double, double> stat_slopes;
+    std::tuple<double, double> stat_cueabun;
+    std::tuple<double, double> stat_offsprings;
+    std::tuple<double, double> simp_shan_offspring;
+    std::tuple<double, double> stat_time_alive;
+    std::tuple<double, double> max_min_time;
+    double relatedness;
 };
 
 // Function to calculate the mean profile of the population
@@ -147,15 +166,21 @@ void Population::simulate(const std::vector<std::string>& param_names){
     fs::path deadnestPath = fs::path("./output_sim/" + std::to_string(simulationID) + "_deadNests.csv");
     std::ofstream dn_file(deadnestPath);
     
+    fs::path finalState = fs::path("./output_sim/" + std::to_string(simulationID) + "_finState.csv");
+    std::ofstream fs_file(finalState);
+
     for (auto i : param_names) {
         evolution_file << i << ',';
         dn_file << i << ',';
     }
 
     evolution_file << "gtime,popstock,popsize,bcnest_avg,bcnest_std,bcind_avg,bcind_std,nshan_avg,nshan_std,nsimp_avg,nsimp_std,ishan_avg,ishan_std,isimp_avg,isimp_std,relatedness,neutral_avg,neutral_std,int_avg,int_std,slope_avg,slope_std,cueabun_avg,cueabun_std,steal,sucsteal,leave,sucfor,rentry,sucrentr,sucfood,offprings_avg,offspring_std,offsimp,offshan,timealive_avg,timealive_std,maxtime_alive,mintime_alive";
-
     evolution_file << std::endl;
     evolution_file.flush();
+
+    fs_file << "gtime,popstock,popsize,bcnest_avg,bcnest_std,bcind_avg,bcind_std,nshan_avg,nshan_std,nsimp_avg,nsimp_std,ishan_avg,ishan_std,isimp_avg,isimp_std,relatedness,neutral_avg,neutral_std,int_avg,int_std,slope_avg,slope_std,cueabun_avg,cueabun_std,steal,sucsteal,leave,sucfor,rentry,sucrentr,sucfood,offprings_avg,offspring_std,offsimp,offshan,timealive_avg,timealive_std,maxtime_alive,mintime_alive";
+    fs_file << std::endl;
+    fs_file.flush();
 
     dn_file << "gtime,tbirth,nest_id,neststock,mom_id,num_steal,num_sucsteal,num_forage,num_sucforage,num_rentry,num_sucrentry,num_raid,num_sucraid,num_actions,int,slope,offspring,neutral_gene,popavg_dist";
     // Add headers for cue values
@@ -270,6 +295,8 @@ void Population::simulate(const std::vector<std::string>& param_names){
         // Last action time of population assigned to tlastregen
         tlastregen = gtime;
     }
+    printLastPopulationState(p.params_to_record,fs_file);
+    fs_file.close();
     evolution_file.close();
     dn_file.close();
 }
@@ -292,6 +319,12 @@ void Population::regenerate_food(){
             PopStock = 0.0;
         }
         PopStock += (gtime - tlastregen)*p.dRatePopStock;
+    } else if (p.iConstStockChoice == 2) {
+        if (gtime - last_TickUpdate_time < dTickTime) {
+            return; // Skip removal if not enough time has passed
+        }
+        PopStock = p.dInitFoodStock;
+        last_TickUpdate_time = gtime;
     }
 }
 
@@ -523,13 +556,13 @@ void Population::printPopulationState(const std::vector< float >& param_values, 
     if (gtime - last_evolution_time < dOutputTime) {
         return; // Skip removal if not enough time has passed
     }
-    // evolution_file << "gtime,popstock,popsize,bcnest_avg,bcnest_std,bcind_avg,bcind_std,nshan_avg,nshan_std,nsimp_avg,nsimp_std,ishan_avg,ishan_std,isimp_avg,isimp_std,relatedness,neutral_avg,neutral_std,int_avg,int_std,slope_avg,slope_std,cueabun_avg,cueabun_std,steal,sucsteal,for,sucfor,rentry,sucrentr,sucfood,offprings_avg,offspring_std,offsimp,offshan,timealive_avg,timealive_std,maxtime_alive,mintime_alive";
+    // evolution_file << "gtime,popstock,popsize,bcnest_avg,bcnest_std,bcind_avg,bcind_std,shannons_avg,shannons_std,simpsons_avg,simpsons_std,shannonsant_avg,shannonsant_std,simpsonsant_avg,simpsonsant_std,relatedness,neutral_avg,neutral_std,intercepts_avg,intercepts_std,slopes_avg,slopes_std,cueabun_avg,cueabun_std,steal,sucsteal,for,sucfor,rentry,sucrentr,sucfood,offsprings_avg,offsprings_std,offsimp,offshan,timealive_avg,timealive_std,maxtime_alive,mintime_alive";
 
     for (auto i : param_values) {
-      csv_file << i << ',';
+        csv_file << i << ',';
     }
-
-    csv_file << gtime << "," << PopStock << "," << nests.size();
+    gen_stuff = std::make_tuple(gtime, PopStock, nests.size());
+    csv_file << std::get<0>(gen_stuff) << "," << std::get<1>(gen_stuff) << "," << std::get<2>(gen_stuff);
 
     std::vector<std::vector<double>> nestProfiles;
     std::vector<std::vector<double>> antProfiles;
@@ -560,29 +593,24 @@ void Population::printPopulationState(const std::vector< float >& param_values, 
         offsprings.push_back(nest.num_offsprings);
         time_alive.push_back(gtime - nest.tbirth);
     }
-    std::tuple<double, double> stat;
 
-    // double simpdiv = calculateSimpsonDiversity(nestProfiles);
-    // double shandiv = calculateShannonDiversity(nestProfiles);
-    stat = calculatePairwiseBrayCurtis(nestProfiles);
-    // csv_file << "," << simpdiv << "," << shandiv;
-    csv_file << "," << std::get<0>(stat) << "," << std::get<1>(stat);
+    stat_bc_nest = calculatePairwiseBrayCurtis(nestProfiles);
+    csv_file << "," << std::get<0>(stat_bc_nest) << "," << std::get<1>(stat_bc_nest);
 
-    stat = calculatePairwiseBrayCurtis(antProfiles);
-    // csv_file << "," << simpdiv << "," << shandiv;
-    csv_file << "," << std::get<0>(stat) << "," << std::get<1>(stat);
+    stat_bc_ant = calculatePairwiseBrayCurtis(antProfiles);
+    csv_file << "," << std::get<0>(stat_bc_ant) << "," << std::get<1>(stat_bc_ant);
 
-    stat = mean_std(shannons);
-    csv_file << "," << std::get<0>(stat) << "," << std::get<1>(stat);
+    stat_shannons = mean_std(shannons);
+    csv_file << "," << std::get<0>(stat_shannons) << "," << std::get<1>(stat_shannons);
 
-    stat = mean_std(simpsons);
-    csv_file << "," << std::get<0>(stat) << "," << std::get<1>(stat);
+    stat_simpsons = mean_std(simpsons);
+    csv_file << "," << std::get<0>(stat_simpsons) << "," << std::get<1>(stat_simpsons);
 
-    stat = mean_std(shannonsant);
-    csv_file << "," << std::get<0>(stat) << "," << std::get<1>(stat);
+    stat_shannonsant = mean_std(shannonsant);
+    csv_file << "," << std::get<0>(stat_shannonsant) << "," << std::get<1>(stat_shannonsant);
 
-    stat = mean_std(simpsonsant);
-    csv_file << "," << std::get<0>(stat) << "," << std::get<1>(stat);
+    stat_simpsonsant = mean_std(simpsonsant);
+    csv_file << "," << std::get<0>(stat_simpsonsant) << "," << std::get<1>(stat_simpsonsant);
 
     // Calculate relatedness
     std::vector<double> geneValuesNest1;
@@ -597,23 +625,22 @@ void Population::printPopulationState(const std::vector< float >& param_values, 
 
         geneValuesNest1.push_back(nest.NestWorkers[randomIndex1].NeutralGene);
         geneValuesNest2.push_back(nest.NestWorkers[randomIndex2].NeutralGene);
-        
     }
 
-    double relatedness = covariance(geneValuesNest1, geneValuesNest2) / (standard_deviation(geneValuesNest1) * standard_deviation(geneValuesNest2));
+    relatedness = covariance(geneValuesNest1, geneValuesNest2) / (standard_deviation(geneValuesNest1) * standard_deviation(geneValuesNest2));
     csv_file << "," << relatedness;
 
-    stat = mean_std(neutral);
-    csv_file << "," << std::get<0>(stat) << "," << std::get<1>(stat);
+    stat_neutral = mean_std(neutral);
+    csv_file << "," << std::get<0>(stat_neutral) << "," << std::get<1>(stat_neutral);
 
-    stat = mean_std(intercepts);
-    csv_file << "," << std::get<0>(stat) << "," << std::get<1>(stat);
+    stat_intercepts = mean_std(intercepts);
+    csv_file << "," << std::get<0>(stat_intercepts) << "," << std::get<1>(stat_intercepts);
 
-    stat = mean_std(slopes);
-    csv_file << "," << std::get<0>(stat) << "," << std::get<1>(stat);
+    stat_slopes = mean_std(slopes);
+    csv_file << "," << std::get<0>(stat_slopes) << "," << std::get<1>(stat_slopes);
 
-    stat = mean_std(cueabun);
-    csv_file << "," << std::get<0>(stat) << "," << std::get<1>(stat);
+    stat_cueabun = mean_std(cueabun);
+    csv_file << "," << std::get<0>(stat_cueabun) << "," << std::get<1>(stat_cueabun);
 
     csv_file << "," << cnt_steal;
     csv_file << "," << cnt_sucsteal;
@@ -623,13 +650,15 @@ void Population::printPopulationState(const std::vector< float >& param_values, 
     csv_file << "," << cnt_sucrentry;
     csv_file << "," << cnt_sucfood;
 
-    stat = mean_std(offsprings);
-    csv_file << "," << std::get<0>(stat) << "," << std::get<1>(stat);
-    csv_file << "," << calculateSimpsonDiversity({offsprings}) << "," << calculateShannonDiversity({offsprings});
+    stat_offsprings = mean_std(offsprings);
+    simp_shan_offspring = std::make_tuple(calculateSimpsonDiversity({offsprings}),calculateShannonDiversity({offsprings}));
+    csv_file << "," << std::get<0>(stat_offsprings) << "," << std::get<1>(stat_offsprings);
+    csv_file << "," << std::get<0>(simp_shan_offspring) << "," << std::get<1>(simp_shan_offspring);
 
-    stat = mean_std(time_alive);
-    csv_file << "," << std::get<0>(stat) << "," << std::get<1>(stat);
-    csv_file << "," << *std::max_element(time_alive.begin(), time_alive.end()) << "," << *std::min_element(time_alive.begin(), time_alive.end());
+    stat_time_alive = mean_std(time_alive);
+    max_min_time = std::make_tuple(*std::max_element(time_alive.begin(), time_alive.end()),*std::min_element(time_alive.begin(), time_alive.end()));
+    csv_file << "," << std::get<0>(stat_time_alive) << "," << std::get<1>(stat_time_alive);
+    csv_file << "," << std::get<0>(max_min_time) << "," << std::get<1>(max_min_time);
 
     // End the CSV line
     csv_file << "\n";
@@ -637,7 +666,52 @@ void Population::printPopulationState(const std::vector< float >& param_values, 
 
     // Update the last removal time
     last_evolution_time = gtime;
-}   
+}
+
+
+void Population::printLastPopulationState(const std::vector< float >& param_values, std::ostream& csv_file) {
+    csv_file << std::get<0>(gen_stuff) << "," << std::get<1>(gen_stuff) << "," << std::get<2>(gen_stuff);
+
+    csv_file << "," << std::get<0>(stat_bc_nest) << "," << std::get<1>(stat_bc_nest);
+
+    csv_file << "," << std::get<0>(stat_bc_ant) << "," << std::get<1>(stat_bc_ant);
+
+    csv_file << "," << std::get<0>(stat_shannons) << "," << std::get<1>(stat_shannons);
+
+    csv_file << "," << std::get<0>(stat_simpsons) << "," << std::get<1>(stat_simpsons);
+
+    csv_file << "," << std::get<0>(stat_shannonsant) << "," << std::get<1>(stat_shannonsant);
+
+    csv_file << "," << std::get<0>(stat_simpsonsant) << "," << std::get<1>(stat_simpsonsant);
+
+    csv_file << "," << relatedness;
+
+    csv_file << "," << std::get<0>(stat_neutral) << "," << std::get<1>(stat_neutral);
+
+    csv_file << "," << std::get<0>(stat_intercepts) << "," << std::get<1>(stat_intercepts);
+
+    csv_file << "," << std::get<0>(stat_slopes) << "," << std::get<1>(stat_slopes);
+
+    csv_file << "," << std::get<0>(stat_cueabun) << "," << std::get<1>(stat_cueabun);
+
+    csv_file << "," << cnt_steal;
+    csv_file << "," << cnt_sucsteal;
+    csv_file << "," << cnt_leave;
+    csv_file << "," << cnt_sucforage;
+    csv_file << "," << cnt_rentry;
+    csv_file << "," << cnt_sucrentry;
+    csv_file << "," << cnt_sucfood;
+
+    csv_file << "," << std::get<0>(stat_offsprings) << "," << std::get<1>(stat_offsprings);
+    csv_file << "," << std::get<0>(simp_shan_offspring) << "," << std::get<1>(simp_shan_offspring);
+    
+    csv_file << "," << std::get<0>(stat_time_alive) << "," << std::get<1>(stat_time_alive);
+    csv_file << "," << std::get<0>(max_min_time) << "," << std::get<1>(max_min_time);
+
+    // End the CSV line
+    csv_file << "\n";
+    csv_file.flush();
+}
 
 void Population::printDeadNestsData(const std::vector< float >& param_values, std::ostream& csv_file){
     if (gtime - last_deadnest_time < dOutputTime) {

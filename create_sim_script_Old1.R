@@ -21,6 +21,6 @@ focal_dMC <- param_grid$dMC[sim_number]
 focal_dFK <- param_grid$dFK[sim_number]
 focal_iMC <- param_grid$iMC[sim_number]
 create_config(dMutationStrengthCues = focal_dMSC, dFracKilled = focal_dFK, dMetabolicCost = focal_dMC, iModelChoice = focal_iMC,
-              params_to_record = "dForagingMean,dSurvTransitionBroodingForaging,dSurvTransitionForagingBrooding")
+              params_to_record = "iModelChoice,dMutationStrength,dFracKilled,dMetabolicCost")
 
 # done
