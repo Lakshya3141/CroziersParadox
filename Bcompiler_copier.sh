@@ -4,11 +4,11 @@
 #SBATCH -J mysimplejob           # Job name
 #SBATCH -o ./firstscript.out    # Specify stdout output file (%j expands to jobId)
 #SBATCH -p parallel              # Queue name
-#SBATCH -t 20:00:00              # Run time (hh:mm:ss) - 20 hours
+#SBATCH -t 00:15:00              # Run time (hh:mm:ss) - 20 hours
 #SBATCH --mem 500M
 #SBATCH -A m2_jgu-tee            # Specify allocation to charge against
 
-num_tot=1500
+num_tot=11280
 
 module load lang/R
 module load compiler/GCC/11.2.0

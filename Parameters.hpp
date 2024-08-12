@@ -20,16 +20,16 @@ namespace fs = std::filesystem;
 // Variables needed at compile time OR variables not explored in variation
 double gtime = 0.0;                               // Global time
 double dRemovalTime = 200.0;                      // Removal time -> unit time after which lowest stock colonies die
-double max_gtime_evolution = dRemovalTime*1000.0;    // Time for evolution phase of simulations
+double max_gtime_evolution = dRemovalTime*10.0;    // Time for evolution phase of simulations
 double dReproductionTime = dRemovalTime;          // Reproduction time -> numTicks after mass reproduction occurs
-double dOutputTime = 50.1;                        // Interval after which population stats are outputed
-double dFracDeadNest = 1.0;                       // Fraction of dead nests recorded in output files
-double dFracLastIndRecord = 0.05;                 // Records individual movement in last this fraction of simulation
+double dOutputTime = 100.1;                        // Interval after which population stats are outputed
+double dFracDeadNest = 0.0;                       // Fraction of dead nests recorded in output files
+double dFracResetSteal = 0.99;                    // Time after which steal is set to 0 to obtain proper values
 const double dInitIntercept = 0.0;                // Initial value of intercept for linear / logistic comparison
-const double dInitSlope = 1.0;                    // Initial value of slope for linear / logistic function
+const double dInitSlope = 0.0;                    // Initial value of slope for linear / logistic function
 bool bIsCoevolve = false;                         // Wether tolerance co-evolves with the cues
 
-// The struct below containss parameters that WILL BE read
+// The struct below contains parameters that WILL BE read
 // from a config file
 struct params {
   params() {};
@@ -177,11 +177,11 @@ void exportParametersToCSV(const params& p) {
     std::ofstream file(parameterPath);
 
     // Write the header
-    file << "max_gtime_evolution,dRemovalTime,dReproductionTime,dTickTime,dOutputTime,dFracDeadNest,dFracLastIndRecord,dInitIntercept,dInitSlope,bIsCoevolve,";
+    file << "max_gtime_evolution,dRemovalTime,dReproductionTime,dTickTime,dOutputTime,dFracDeadNest,dFracResetSteal,dInitIntercept,dInitSlope,bIsCoevolve,";
     file << "dFracKilled,dMetabolicCost,dMutationStrength,dMutationStrengthCues,dFracIndMutStrength,dMutBias,iNumWorkers,iNumCues,iNumColonies,dInitNestStock,dInitFoodStock,dExpParam,dMeanActionTime,dRatePopStock,dConstantPopStock,dRateNestStock,iModelChoice,iTolChoice,iKillChoice,iRepChoice,iFoodResetChoice,iConstStockChoice\n";
 
     // Write the values
-    file << max_gtime_evolution << "," << dRemovalTime << "," << dReproductionTime << "," << p.dTickTime << "," << dOutputTime << "," << dFracDeadNest << "," << dFracLastIndRecord << "," << dInitIntercept << "," << dInitSlope << "," << bIsCoevolve << ",";
+    file << max_gtime_evolution << "," << dRemovalTime << "," << dReproductionTime << "," << p.dTickTime << "," << dOutputTime << "," << dFracDeadNest << "," << dFracResetSteal << "," << dInitIntercept << "," << dInitSlope << "," << bIsCoevolve << ",";
     file << p.dFracKilled << "," << p.dMetabolicCost << "," << p.dMutationStrength << "," << p.dMutationStrengthCues << "," << p.dFracIndMutStrength << "," << p.dMutBias << "," << p.iNumWorkers << "," << p.iNumCues << "," << p.iNumColonies << "," << p.dInitNestStock << "," << p.dInitFoodStock << "," << p.dExpParam << "," << p.dMeanActionTime << "," << p.dRatePopStock << "," << p.dConstantPopStock << "," << p.dRateNestStock << "," << p.iModelChoice << "," << p.iTolChoice << "," << p.iKillChoice << "," << p.iRepChoice << "," << p.iFoodResetChoice << "," << p.iConstStockChoice << "\n";
 
     // Close the file

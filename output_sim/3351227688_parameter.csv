@@ -1,0 +1,2 @@
+max_gtime_evolution,dRemovalTime,dReproductionTime,dTickTime,dOutputTime,dFracDeadNest,dFracResetSteal,dInitIntercept,dInitSlope,bIsCoevolve,dFracKilled,dMetabolicCost,dMutationStrength,dMutationStrengthCues,dFracIndMutStrength,dMutBias,iNumWorkers,iNumCues,iNumColonies,dInitNestStock,dInitFoodStock,dExpParam,dMeanActionTime,dRatePopStock,dConstantPopStock,dRateNestStock,iModelChoice,iTolChoice,iKillChoice,iRepChoice,iFoodResetChoice,iConstStockChoice
+20000,200,200,2,100.1,0,0.99,0,0,0,0.4,40,0.1,5,0.1,0,10,10,50,25,300,0.1,1,0,50,0,0,0,1,0,1,2
