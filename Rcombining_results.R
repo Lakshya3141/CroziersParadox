@@ -87,5 +87,5 @@ writeLines(failed_folds_line, "./additional/failed_runs_third.txt")
 writeLines(as.character(length(failed_folds)), "./additional/failed_total_third.txt", )
 
 # Optionally, save the central dataset to a CSV file
-write_csv(central_dataset, "combined_simulation_results3.csv")
-write_csv(central_finstates, "combined_finstates3.csv")
+write_csv(central_dataset, "combined_simulation_results.csv")
+write_csv(central_finstates, "combined_finstates.csv")

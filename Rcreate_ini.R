@@ -26,7 +26,7 @@ create_config <- function(config_file_name = "config.ini",
                           iRepChoice = 0,
                           iFoodResetChoice = 1,
                           iConstStockChoice = 2,
-                          params_to_record = "iModelChoice,dMutationStrength,dFracKilled,dMetabolicCost") {
+                          params_to_record = "iModelChoice,dMutationStrength,dMutationStrengthCues,dFracKilled,dMetabolicCost") {
   
   # Create a list to hold the parameters
   newini <- list()

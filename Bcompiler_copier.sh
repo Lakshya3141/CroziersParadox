@@ -8,7 +8,7 @@
 #SBATCH --mem 500M
 #SBATCH -A m2_jgu-tee            # Specify allocation to charge against
 
-num_tot=11280
+num_tot=14640
 
 module load lang/R
 module load compiler/GCC/11.2.0

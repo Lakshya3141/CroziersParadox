@@ -6,7 +6,7 @@
 #SBATCH -p parallel              # Queue name
 #SBATCH -N 1                     # Total number of nodes requested (20 cores/node on a standard Broadwell-node)
 #SBATCH -n 1                     # Total number of tasks
-#SBATCH --array=1-5640
+#SBATCH --array=1-7320
 #SBATCH -t 00:40:00              # Run time (hh:mm:ss) - 0.5 hours
 #SBATCH --mem 500M
 #SBATCH -A m2_jgu-tee            # Specify allocation to charge against

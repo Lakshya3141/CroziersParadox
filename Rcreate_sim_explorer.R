@@ -5,14 +5,14 @@ iKillChoice <- c(0, 1)
 iConstStockChoice <- c(2)
 iFoodReset <- c(1)
 iRepChoice <- c(0)
-dTickTime <- c(1, 2, 4)
+dTickTime <- c(1, 2, 3, 4)
 dConstantPopStock <- c(50)
 dMutationStrengthCues <- c(5)
 dFracKilled <- c(0.4)
 dMetabolicCost <- c(40)
 dExpParam <- c(0.1)
-iModelChoice <- c(0, 1, 2, 3, 4, 5, 6)
-replicates <- c(1:10)
+iModelChoice <- c(0, 1, 2, 3)
+replicates <- c(1:30)
 
 base_grid <- expand.grid(
   iKC = iKillChoice, 
@@ -34,14 +34,14 @@ iKillChoice <- c(0, 1)
 iConstStockChoice <- c(2)
 iFoodReset <- c(1)
 iRepChoice <- c(0)
-dTickTime <- c(1, 2, 4)
+dTickTime <- c(1, 2, 3, 4)
 dConstantPopStock <- c(50)
 dMutationStrengthCues <- c(5)
 dFracKilled <- c(0.4)
-dMetabolicCost <- c(1, 10, 20, 40, 80, 200)
+dMetabolicCost <- c(10, 20, 40, 80)
 dExpParam <- c(0.1)
-iModelChoice <- c(0, 1, 2, 3, 4, 5, 6)
-replicates <- c(1:10)
+iModelChoice <- c(0, 1, 2, 3)
+replicates <- c(1:30)
 
 dMC_grid <- expand.grid(
   iKC = iKillChoice, 
@@ -63,14 +63,14 @@ iKillChoice <- c(0, 1)
 iConstStockChoice <- c(2)
 iFoodReset <- c(1)
 iRepChoice <- c(0)
-dTickTime <- c(1, 2, 4)
+dTickTime <- c(1, 2, 3, 4)
 dConstantPopStock <- c(50)
-dMutationStrengthCues <- c(0.1, 0.5, 1, 5, 10)
+dMutationStrengthCues <- c(0.5, 1, 5, 10)
 dFracKilled <- c(0.4)
 dMetabolicCost <- c(40)
 dExpParam <- c(0.1)
-iModelChoice <- c(0, 1, 2, 3, 4, 5, 6)
-replicates <- c(1:10)
+iModelChoice <- c(0, 1, 2, 3)
+replicates <- c(1:30)
 
 dMSC_grid <- expand.grid(
   iKC = iKillChoice, 
@@ -92,14 +92,14 @@ iKillChoice <- c(0, 1)
 iConstStockChoice <- c(2)
 iFoodReset <- c(1)
 iRepChoice <- c(0)
-dTickTime <- c(1, 2, 4)
+dTickTime <- c(1, 2, 3, 4)
 dConstantPopStock <- c(50)
 dMutationStrengthCues <- c(5)
 dFracKilled <- c(0.1, 0.3, 0.5, 0.7, 0.9)
 dMetabolicCost <- c(40)
 dExpParam <- c(0.1)
-iModelChoice <- c(0, 1, 2, 3, 4, 5, 6)
-replicates <- c(1:10)
+iModelChoice <- c(0, 1, 2, 3)
+replicates <- c(1:30)
 
 dFK_grid <- expand.grid(
   iKC = iKillChoice, 
@@ -127,7 +127,7 @@ dMutationStrengthCues <- c(5)
 dFracKilled <- c(0.4)
 dMetabolicCost <- c(40)
 dExpParam <- c(0.1)
-iModelChoice <- c(0, 1, 2, 3, 4, 5, 6)
+iModelChoice <- c(0, 1, 2, 3)
 replicates <- c(1:10)
 
 iFR_iRC_grid <- expand.grid(
@@ -148,8 +148,8 @@ iFR_iRC_grid <- expand.grid(
 #### ConstFood param grid ####
 iKillChoice <- c(0, 1)
 iConstStockChoice <- c(1)
-iFoodReset <- c(0, 1)
-iRepChoice <- c(0, 2)
+iFoodReset <- c(1)
+iRepChoice <- c(0)
 dTickTime <- c(2)
 dConstantPopStock <- c(1, 5, 10, 25, 50, 75, 100, 200, 500)
 dMutationStrengthCues <- c(5)
@@ -157,7 +157,7 @@ dFracKilled <- c(0.4)
 dMetabolicCost <- c(40)
 dExpParam <- c(0.1)
 iModelChoice <- c(0, 1, 2, 3)
-replicates <- c(1:10)
+replicates <- c(1:30)
 
 ConstFood_grid <- expand.grid(
   iKC = iKillChoice, 
@@ -179,7 +179,6 @@ param_grid <- rbind(
   dMC_grid,
   dMSC_grid,
   dFK_grid,
-  iFR_iRC_grid,
   ConstFood_grid
 )
 
