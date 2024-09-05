@@ -2,10 +2,10 @@
  Code for Lakshya's final semester thesis on resolving crozier's paradox
 
 ## Contents
-Main folder files: Base scripts required to run a single instance of simulation
-SlurmParallelExploration folder: Contains R and Bash Scripts for parallel exploration of parameters
-PlottingAndAnalysis: Contains files to combine, plot and analyse results from slurm output
-ProjectMaintenance: Additonal literature, presentations and reports for thesis requirements
+1) Main folder files: Base scripts required to run a single instance of simulation
+2) SlurmParallelExploration folder: Contains R and Bash Scripts for parallel exploration of parameters
+3) PlottingAndAnalysis: Contains files to combine, plot and analyse results from slurm output
+4) ProjectMaintenance: Additonal literature, presentations and reports for thesis requirements
 
 ## Running a single instance of simulation
 1) Edit parameters as per requirement in the Rcreate_ini.R script and run it#
